@@ -1,0 +1,47 @@
+# Environment
+.env
+venv/
+env/
+ENV/
+*.pyc
+__pycache__/
+
+# Logs
+logs/*.log
+*.log
+
+# Data
+data/*.csv
+data/*.json
+
+# Dati grezzi Dukascopy (~500MB / 40k file) — RIGENERABILI, non committare.
+# I CSV/pkl DERIVATI in data/research/ SI committano (riproducono i backtest).
+data/research/duka_cache/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Claude Code local settings (per-machine permissions)
+.claude/settings.local.json
+
+# Dashboard test artifacts
+data/journal_test.db
+data/journal_test_export.json
+logs/positions_test.log
+
+# Trade journal (runtime)
+data/*.db
+
+# Dashboard runtime (Fasi 3-4)
+.env.bak.*
+data/flags/
+
+# Repo git annidato (clone locale, non parte del progetto)
+microevolutive/bitcoin-quant-scanner/

@@ -1,0 +1,87 @@
+# Bot IG (US500) — docker-compose (deploy Raspberry Pi)
+#
+# PERSISTENZA: ./data, ./logs e ./.env sono BIND MOUNT del filesystem host —
+# sopravvivono a `down`/rebuild dei container (non sono volumi gestiti Docker).
+# Nel bind mount di ./data ci sono anche positions.db e i CSV dei backtest.
+#
+# .ENV montato come FILE (non env_file): il bot lo legge con load_dotenv() a
+# ogni avvio, così edit → restart funziona (restart: unless-stopped = supervisor).
+
+x-base: &base
+  build:
+    context: .
+    dockerfile: Dockerfile
+  image: igedge:latest
+  restart: unless-stopped
+  logging:
+    driver: "json-file"
+    options:
+      max-size: "10m"
+      max-file: "3"
+  dns:
+    - 8.8.8.8
+    - 1.1.1.1
+  networks:
+    - igedge-net
+
+services:
+  # ------------------------------------------------------------------
+  # Bot di trading: loop reconcile → decide → esegui (dip-buy US500)
+  # ------------------------------------------------------------------
+  bot:
+    <<: *base
+    container_name: igedge
+    command: ["python", "bot.py"]
+    volumes:
+      - ./data:/app/data:rw
+      - ./logs:/app/logs:rw
+      - ./.env:/app/.env:rw
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+        reservations:
+          memory: 128M
+    healthcheck:
+      # vivo = il bot ha scritto il log negli ultimi 30 min (loop ~15 min)
+      test: ["CMD", "python", "-c",
+             "import os,sys,time; p='logs/bot.log'; sys.exit(0 if os.path.exists(p) and time.time()-os.path.getmtime(p)<1800 else 1)"]
+      interval: 5m
+      timeout: 10s
+      retries: 3
+      start_period: 2m
+
+  # ------------------------------------------------------------------
+  # Dashboard Streamlit (monitoraggio + analisi regime).
+  # Porta SOLO su localhost: l'esterno passa da Cloudflare Tunnel + Access
+  # (la dashboard mostra posizioni/stato — proteggerla).
+  # ------------------------------------------------------------------
+  dashboard:
+    <<: *base
+    container_name: igedge-dashboard
+    command: ["python", "-m", "streamlit", "run", "src/monitoring/dashboard.py",
+              "--server.address=0.0.0.0", "--server.port=8501",
+              "--server.headless=true"]
+    volumes:
+      - ./data:/app/data:rw
+      - ./logs:/app/logs:rw
+      - ./.env:/app/.env:rw
+    ports:
+      - "127.0.0.1:8501:8501"
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+        reservations:
+          memory: 128M
+    healthcheck:
+      test: ["CMD", "python", "-c",
+             "import urllib.request,sys; urllib.request.urlopen('http://localhost:8501/_stcore/health', timeout=5); sys.exit(0)"]
+      interval: 2m
+      timeout: 10s
+      retries: 3
+      start_period: 1m
+
+networks:
+  igedge-net:
+    driver: bridge

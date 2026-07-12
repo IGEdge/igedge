@@ -1,0 +1,10 @@
+# Bot IG (US500) — dipendenze. Leggero per build su Raspberry Pi (arm64).
+requests>=2.31.0
+python-dotenv>=1.0.0
+truststore>=0.9.0          # TLS via OS trust store (fix proxy/AV su Windows; no-op su Linux)
+certifi>=2024.2.2
+pandas>=2.1.3
+numpy>=1.26.2
+python-dateutil>=2.8.2
+pytz>=2024.1
+streamlit>=1.30.0          # dashboard (monitoraggio + regime)

@@ -1,0 +1,4 @@
+# I dati US500 (us500_daily.csv, us500_h1.csv, duka_cache/) sono conservati
+# APPOSTA nel progetto per NON doverli riscaricare — vedi README.md.
+# Nota: se in futuro si versiona con git, duka_cache/ è grande (~500 MB) —
+# valutare se tenerla tracciata (riproducibilità offline) o ignorarla qui.
