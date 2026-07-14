@@ -69,6 +69,7 @@ IGEdge/
 | Documento | Contenuto |
 |---|---|
 | [docs/EDGE_BUYTHEDIP.md](docs/EDGE_BUYTHEDIP.md) | L'edge #1: regole, validazione, leva, comandi |
+| [docs/EDGE_SHORTVOL.md](docs/EDGE_SHORTVOL.md) | Edge #2 (candidato): short-vol VRP con iron condor su opzioni US500 |
 | [docs/EDGES.md](docs/EDGES.md) | Registro edge: validati / falsificati / da indagare |
 | [docs/BOT_ARCHITECTURE.md](docs/BOT_ARCHITECTURE.md) | Architettura modulare + checklist sicurezza |
 | [docs/DEPLOY.md](docs/DEPLOY.md) | Deploy Docker su Raspberry Pi |

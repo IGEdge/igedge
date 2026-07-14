@@ -140,6 +140,31 @@ class IGClient:
             logger.error("[IG] login returned 200 but no CST/security token")
         return ok
 
+    def apply_tokens(self, cst: str, security_token: str,
+                     account_id: Optional[str] = None,
+                     lightstreamer_endpoint: Optional[str] = None) -> None:
+        """Riusa token di sessione già ottenuti (da una sessione persistente),
+        senza rifare il login. Vedi src/options/session.py."""
+        self.cst = cst
+        self.security_token = security_token
+        if account_id:
+            self.account_id = account_id
+        if lightstreamer_endpoint:
+            self.lightstreamer_endpoint = lightstreamer_endpoint
+
+    def is_session_valid(self) -> bool:
+        """I token attuali sono ancora validi? (GET /session → 200). Usato dalla
+        sessione persistente per riusare invece di ri-loggare (evita il lockout
+        da troppi login ravvicinati)."""
+        if not (self.cst and self.security_token):
+            return False
+        try:
+            r = requests.get(f"{self.base_url}/session",
+                             headers=self._headers(version="1"), timeout=self.timeout)
+            return r.status_code == 200
+        except requests.exceptions.RequestException:
+            return False
+
     def logout(self) -> None:
         """Close the dealing session (best-effort)."""
         if not (self.cst and self.security_token):
