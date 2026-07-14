@@ -7,7 +7,7 @@ bounces; when the bounce reaches ~50% of A, a SHORT there has positive expectanc
 (target ≈ 50% of the bounce). This is the project's first NON-long-biased idea, so
 it sidesteps the intraday-long headwind that killed B/C/D.
 
-Binding method (docs/EDGES.md MIDSWING-FADE §1-4): the entry is CONDITIONAL on the
+Binding method (docs/INDICE-EDGE.md MIDSWING-FADE §1-4): the entry is CONDITIONAL on the
 level being TOUCHED — at the touch, a bounce about to die and one that runs to 78%
 are indistinguishable. So Test 1 asks: does the MFE/MAE distribution after the real
 50% touch differ from PLACEBO touches at random levels r∈U(0.30,0.70) on the SAME

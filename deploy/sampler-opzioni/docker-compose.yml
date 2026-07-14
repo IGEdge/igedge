@@ -1,0 +1,55 @@
+# Sampler OPZIONI — servizio autonomo per Raspberry Pi (cartella dedicata).
+#
+# Ogni giorno di borsa alle 16:30 (Europe/Rome, = 10:30 New York):
+#   1. refresh VIX + VIX3M dal CBOE
+#   2. sampler dello SKEW IG (il gate degli edge #2/#3) → data/research/skew_samples.csv
+#   3. run_spread PLAN-ONLY (controlla i segnali dei 2 edge — NESSUN ordine)
+#
+# Usa la STESSA immagine del bot (build dal Dockerfile in radice repo).
+# PERSISTENZA: ../../data, ../../logs, ../../.env = bind mount del repo sul Pi.
+#
+#   cd deploy/sampler-opzioni && docker compose up -d --build
+#   docker compose logs -f
+#
+# ⚠️ SICUREZZA: questo servizio è READ-ONLY su IG (plan-only). Non apre MAI
+# posizioni: l'apertura richiede run_spread --arm --i-understand-live-risk A MANO.
+
+services:
+  sampler:
+    build:
+      context: ../..
+      dockerfile: Dockerfile
+    image: igedge:latest
+    container_name: igedge-sampler
+    command: ["python", "scripts/sampler_daemon.py"]
+    restart: unless-stopped
+    environment:
+      - SAMPLER_RUN_AT=16:30        # orario giornaliero (TZ sotto)
+      - SAMPLER_RETRIES=3
+      - TZ=Europe/Rome
+    volumes:
+      - ../../data:/app/data:rw
+      - ../../logs:/app/logs:rw
+      - ../../.env:/app/.env:rw
+    dns:
+      - 8.8.8.8
+      - 1.1.1.1
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+        reservations:
+          memory: 64M
+    healthcheck:
+      # vivo = heartbeat scritto negli ultimi 5 minuti (il demone lo tocca ogni 60s)
+      test: ["CMD", "python", "-c",
+             "import os,sys,time; p='logs/sampler.heartbeat'; sys.exit(0 if os.path.exists(p) and time.time()-os.path.getmtime(p)<300 else 1)"]
+      interval: 2m
+      timeout: 10s
+      retries: 3
+      start_period: 1m

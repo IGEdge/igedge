@@ -31,7 +31,7 @@ costi** dopo 8 falsificazioni sul prezzo intraday. Vende volatilità implicita
 
 condor mensile), tenuta **a scadenza**. Complemento scorrelato all'[EDGE #1
 
-dip-buy](EDGE_BUYTHEDIP.md).
+dip-buy](EDGE-1-compra-il-dip.md).
 
 
 > **Documento vivo** — si aggiorna a ogni test. Stato in cima, dettagli sotto.
@@ -111,7 +111,7 @@ si *realizza* — è un premio assicurativo pagato da chi compra protezione. Chi
 
 dell'indice, quindi **aggira** il problema segnale-piccolo/headwind che ha ucciso
 
-tutte le idee intraday ([EDGES.md](EDGES.md), Lezione #2).
+tutte le idee intraday ([INDICE-EDGE.md](INDICE-EDGE.md), Lezione #2).
 
 
 **Struttura: iron condor mensile a rischio definito.**

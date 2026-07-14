@@ -4,7 +4,7 @@ IGEdge — bot.py, entrypoint. Loop: reconcile → decide → esegui.
 Modulare: le strategie abilitate (DIP_BUY_ENABLED, ...) si caricano da un
 registry; aggiungerne una = 1 modulo + 1 flag nel .env.
 
-SICUREZZA prima di tutto (docs/BOT_ARCHITECTURE.md):
+SICUREZZA prima di tutto (docs/ARCHITETTURA-BOT.md):
   - reconcile con IG a OGNI ciclo (position_store) prima di operare;
   - kill switch giornaliero + cap esposizione (risk_manager);
   - conferma di ogni ordine + idempotenza (order_manager).

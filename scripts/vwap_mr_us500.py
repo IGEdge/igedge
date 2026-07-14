@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-VWAP Mean-Reversion on US500 (EDGES.md Strategy C) — intraday, flat overnight.
+VWAP Mean-Reversion on US500 (INDICE-EDGE.md Strategy C) — intraday, flat overnight.
 
 Thesis: intraday VWAP is the "fair value" desks trade around; large deviations
 below it revert. Long when price is > k*sigma below the session VWAP; target =

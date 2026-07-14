@@ -1,7 +1,7 @@
 """
 RiskManager — sizing CFD con leva, kill switch giornaliero, cap esposizione.
 
-Regole (docs/BOT_ARCHITECTURE.md §2B):
+Regole (docs/ARCHITETTURA-BOT.md §2B):
   - size CFD:  notional_target = equity * leva  ->  size = notional / (prezzo * val_punto)
   - kill switch: se l'equity scende di > max_daily_loss% dal valore di inizio
     giornata (UTC) -> stop nuovi ingressi;

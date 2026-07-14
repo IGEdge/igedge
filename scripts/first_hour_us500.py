@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-First-Hour Momentum Filter on US500 (EDGES.md Strategy D) — NOT an ORB.
+First-Hour Momentum Filter on US500 (INDICE-EDGE.md Strategy D) — NOT an ORB.
 
 The classic Opening-Range Breakout is already falsified (coin flip). This is
 different: use the FIRST HOUR only as a DIRECTIONAL FILTER, then enter long on a

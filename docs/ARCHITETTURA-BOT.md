@@ -93,7 +93,7 @@ Questo è ciò che separa un bot che sopravvive da uno che ti svuota il conto.
 5. ✅ **`bot.py`** — loop reconcile → decide → esegui (gira end-to-end su demo).
 6. ✅ **dashboard** (`src/monitoring/dashboard.py`): operativo + analisi regime.
 7. ⏳ **Paper trading su demo** (a mercato aperto) → confronto col backtest → live.
-8. ⏳ (opzionale) alert Telegram; nuove strategie da EDGES.md.
+8. ⏳ (opzionale) alert Telegram; nuove strategie da INDICE-EDGE.md.
 
 Deploy: Docker (`docker compose up -d --build`), guida in [DEPLOY.md](DEPLOY.md).
 

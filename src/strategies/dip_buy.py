@@ -3,7 +3,7 @@ DipBuyStrategy — EDGE #1 live (mean-reversion di breve, intraday).
 
 Calcola il segnale dalle barre DAILY di IG (SMA200 + RSI(2)) e decide l'azione.
 Esecuzione intraday (flat overnight) gestita dal bot loop. Documentazione e
-validazione: docs/EDGE_BUYTHEDIP.md.
+validazione: docs/EDGE-1-compra-il-dip.md.
 
 Regole:
   ENTER: close > SMA200  AND  RSI(2) < entry_rsi        (compra il dip in uptrend)

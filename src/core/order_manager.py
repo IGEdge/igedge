@@ -2,7 +2,7 @@
 OrderManager — esecuzione sicura: conferma il fill, retry sui transitori,
 idempotenza, e registra tutto nel PositionStore.
 
-Principi (docs/BOT_ARCHITECTURE.md §2A):
+Principi (docs/ARCHITETTURA-BOT.md §2A):
   - MAI assumere il fill: ogni deal è confermato (dealStatus ACCEPTED/REJECTED);
   - idempotenza: non apre se la strategia ha già una posizione su quell'epic;
   - retry SOLO sui fallimenti transitori (nessuna conferma), MAI su REJECTED

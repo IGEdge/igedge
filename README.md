@@ -8,7 +8,7 @@ Docker su Raspberry Pi.
 > **Filosofia: validare prima, costruire dopo.** Ogni strategia passa un apparato
 > rigoroso (backtest netto costi + in/out-of-sample + test del nulla) *prima* di
 > essere messa live. 6 idee popolari sono state **falsificate** dai dati; 1 ha
-> retto. Vedi [docs/EDGES.md](docs/EDGES.md).
+> retto. Vedi [docs/INDICE-EDGE.md](docs/INDICE-EDGE.md).
 
 ---
 
@@ -16,7 +16,7 @@ Docker su Raspberry Pi.
 Long su ipervenduto di breve (`RSI(2)<10`) in uptrend (`close>SMA200`), con
 scale-in sui dip più profondi, uscita sul rimbalzo, **intraday** (flat overnight).
 WR **86%**, regge out-of-sample, sopravvive ai costi CFD. Dettaglio e numeri:
-**[docs/EDGE_BUYTHEDIP.md](docs/EDGE_BUYTHEDIP.md)**.
+**[docs/EDGE-1-compra-il-dip.md](docs/EDGE-1-compra-il-dip.md)**.
 
 ## Come funziona il bot
 ```
@@ -68,18 +68,18 @@ IGEdge/
 ## Documentazione
 | Documento | Contenuto |
 |---|---|
-| [docs/EDGE_BUYTHEDIP.md](docs/EDGE_BUYTHEDIP.md) | L'edge #1: regole, validazione, leva, comandi |
-| [docs/EDGE_SHORTVOL.md](docs/EDGE_SHORTVOL.md) | Edge #2 (candidato): short-vol VRP con iron condor su opzioni US500 |
-| [docs/EDGES.md](docs/EDGES.md) | Registro edge: validati / falsificati / da indagare |
-| [docs/BOT_ARCHITECTURE.md](docs/BOT_ARCHITECTURE.md) | Architettura modulare + checklist sicurezza |
+| [docs/EDGE-1-compra-il-dip.md](docs/EDGE-1-compra-il-dip.md) | L'edge #1: regole, validazione, leva, comandi |
+| [docs/STORIA-iron-condor.md](docs/STORIA-iron-condor.md) | Edge #2 (candidato): short-vol VRP con iron condor su opzioni US500 |
+| [docs/INDICE-EDGE.md](docs/INDICE-EDGE.md) | Registro edge: validati / falsificati / da indagare |
+| [docs/ARCHITETTURA-BOT.md](docs/ARCHITETTURA-BOT.md) | Architettura modulare + checklist sicurezza |
 | [docs/DEPLOY.md](docs/DEPLOY.md) | Deploy Docker su Raspberry Pi |
-| [docs/IG_CONVERSION.md](docs/IG_CONVERSION.md) | Log del progetto: setup IG, tutti i risultati |
+| [docs/DIARIO-CONVERSIONE-IG.md](docs/DIARIO-CONVERSIONE-IG.md) | Log del progetto: setup IG, tutti i risultati |
 | [data/research/README.md](data/research/README.md) | Dove sono i dati e come rigenerarli |
 
 ## Stato
 Edge #1 validato e implementato. Bot core (esecuzione + rischio + reconcile +
 dashboard) **funzionante end-to-end** su demo. Prossimo: paper trading su demo a
-mercato aperto, e backtest delle nuove idee edge ([docs/EDGES.md](docs/EDGES.md)).
+mercato aperto, e backtest delle nuove idee edge ([docs/INDICE-EDGE.md](docs/INDICE-EDGE.md)).
 
 ## Disclaimer
 Software per ricerca e trading del proprio capitale. Il trading con leva comporta

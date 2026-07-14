@@ -4,11 +4,11 @@ Primo edge **non-direzionale** del progetto e primo candidato che **supera il ga
 costi** dopo 8 falsificazioni sul prezzo intraday. Vende volatilità implicita
 (sistematicamente > realizzata) con una struttura a **rischio definito** (iron
 condor mensile), tenuta **a scadenza**. Complemento scorrelato all'[EDGE #1
-dip-buy](EDGE_BUYTHEDIP.md).
+dip-buy](EDGE-1-compra-il-dip.md).
 
 > **Documento vivo** — si aggiorna a ogni test. Stato in cima, dettagli sotto.
 
-> **➡️ L'EDGE SOPRAVVISSUTO È IL PUT-SPREAD FAR-OTM — vedi [EDGE_PUTSPREAD.md](EDGE_PUTSPREAD.md).**
+> **➡️ L'EDGE SOPRAVVISSUTO È IL PUT-SPREAD FAR-OTM — vedi [EDGE-2-vendi-put-lontane.md](EDGE-2-vendi-put-lontane.md).**
 > Togliendo il lato call (a sconto, la causa di morte del condor) resta il solo lato
 > put (skew ricco) = edge reale ma modesto. Questo documento resta come **storia +
 > lezione** del condor. L'infrastruttura live (§6/§9) è riusata dal put-spread.
@@ -72,7 +72,7 @@ Dati: `data/research/vix_daily.csv` (CBOE 1990-2026), `us500_daily.csv` (S&P pro
 si *realizza* — è un premio assicurativo pagato da chi compra protezione. Chi
 **vende** opzioni lo incassa. È **non-direzionale**: non dipende dal drift
 dell'indice, quindi **aggira** il problema segnale-piccolo/headwind che ha ucciso
-tutte le idee intraday ([EDGES.md](EDGES.md), Lezione #2).
+tutte le idee intraday ([INDICE-EDGE.md](INDICE-EDGE.md), Lezione #2).
 
 **Struttura: iron condor mensile a rischio definito.**
 - Ogni ~21 giorni (mensile), con sottostante `S` e implied vol `iv` (dal VIX):
@@ -218,7 +218,7 @@ shadowing.
 
 ## 4d. Copertura bull-put sui dip — TESTATA, NON è una copertura (13 lug 2026)
 
-Idea (docs/EDGE-option-combinato.md): durante un ribasso, vendere un **bull put
+Idea (docs/STORIA-copertura-put-sui-dip.md): durante un ribasso, vendere un **bull put
 spread** sul segnale dip-buy validato (RSI2<10, close>SMA200) per sfruttare l'IV
 gonfiata + la mean-reversion, e "assorbire" la perdita del put side del condor.
 Backtestata in `scripts/bull_put_dip_us500.py` (BS+VIX+skew, hold-to-expiry).

@@ -243,3 +243,11 @@
 {"ts": "2026-07-14T06:28:02.213499+00:00", "action": "run_skip", "dry_run": true, "reason": "max posizioni raggiunto (1/1)", "plan_action": "skip"}
 {"ts": "2026-07-14T06:28:23.171877+00:00", "action": "session_reused", "dry_run": true, "account": "TVYYM", "age_s": 1766}
 {"ts": "2026-07-14T06:28:40.882711+00:00", "action": "plan", "dry_run": true, "desc": "Condor AUG-26 spot=7548 vix=13.7 credit~35.3 maxloss~264.7 | long_put_wing[BUY PUT 6900 x1] long_call_wing[BUY CALL 8200 x1] short_put[SELL PUT 7200 x1] short_call[SELL CALL 7900 x1]", "spot": 7548.3, "vix": 13.729818615945188, "dte": 38, "credit": 35.3, "maxloss": 264.7, "size": 1, "risk_pct": 26.0, "warn": "1 contratto rischia 265 = 26% del capitale (> 10% target). OK per test, size forzata a 1."}
+{"ts": "2026-07-14T13:52:52.680861+00:00", "action": "session_reused", "dry_run": true, "account": "TVYYM", "age_s": 28435}
+{"ts": "2026-07-14T19:40:47.574521+00:00", "action": "session_reused", "dry_run": true, "account": "TVYYM", "age_s": 49310}
+{"ts": "2026-07-14T19:40:54.237650+00:00", "action": "spread_skip", "dry_run": true, "strat": "putspread", "reason": "VIX 16.4 < 20: niente panico da vendere"}
+{"ts": "2026-07-14T19:41:06.777105+00:00", "action": "spread_plan", "dry_run": true, "strat": "callspread", "desc": "Condor AUG-26 spot=7571 vix=16.4 credit~-134.3 maxloss~134.3 | long_call[BUY CALL 7550 x1] short_call[SELL CALL 7950 x1]", "risk_pts": 134.3, "reward_pts": 265.7, "size": 1, "risk_eur": 125.0, "signal": "uptrend: spot 7571 > SMA200 6976"}
+{"ts": "2026-07-14T19:49:02.015060+00:00", "action": "session_reused", "dry_run": true, "account": "TVYYM", "age_s": 49804}
+{"ts": "2026-07-14T19:49:37.499427+00:00", "action": "session_reused", "dry_run": true, "account": "TVYYM", "age_s": 49840}
+{"ts": "2026-07-14T19:49:43.896098+00:00", "action": "spread_skip", "dry_run": true, "strat": "putspread", "reason": "VIX 16.5 < 20: niente panico da vendere"}
+{"ts": "2026-07-14T19:49:56.332885+00:00", "action": "spread_plan", "dry_run": true, "strat": "callspread", "desc": "Condor AUG-26 spot=7576 vix=16.5 credit~-109.7 maxloss~109.7 | long_call[BUY CALL 7600 x1] short_call[SELL CALL 8000 x1]", "risk_pts": 109.7, "reward_pts": 290.3, "size": 1, "risk_eur": 102.0, "signal": "uptrend: spot 7576 > SMA200 6976"}

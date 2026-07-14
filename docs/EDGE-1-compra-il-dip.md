@@ -25,10 +25,18 @@ python scripts/mean_reversion_us500.py --from 2018-01-01 --to 2026-07-11 --entry
 
 # ► VERSIONE INTRADAY (flat overnight, da LEVERARE — stesso edge, no gap/fin):
 python scripts/mean_reversion_us500.py --entry-thr 10 --exit-ma 10 --scale-in 2 --add-thr 5 --intraday
+
+# ► ENSEMBLE C1 (validato 14 lug 2026, §5b): unione trigger t1-t5, ~20 trade/anno:
+python scripts/mean_reversion_us500.py --trigger union --exit-ma 10 --scale-in 2 --add-thr 5
+# satellite SHORT per i bear (t6):
+python scripts/mean_reversion_us500.py --trigger t6 --exit-ma 5 --max-hold 7
+# contributo marginale di un trigger (solo giorni non-t1) + test del nulla:
+python scripts/mean_reversion_us500.py --trigger t3 --exclude-t1 --null 200 --exit-ma 10 --scale-in 2 --add-thr 5
 ```
 
-**Stato:** edge validato + scale-in + **intraday confermato** (§5: stesso edge
-flat overnight → leverabile in sicurezza). **Prossimo passo** (§6):
+**Stato:** edge validato + scale-in + **intraday confermato** (§5) + **ENSEMBLE
+C1 validato** (§5b: 5 trigger → ~20 trade/anno, CAGR +8.8% a parità di maxDD, più
+satellite short per i bear). **Prossimo passo** (§6):
 sizing/combinazione edge → adapter IG + paper demo.
 Se i dati US500 vanno estesi/rigenerati vedi `data/research/README.md`.
 
@@ -167,6 +175,55 @@ all'apertura; chiudi alla chiusura; flat la notte; esci quando scatta l'exit.
 
 ---
 
+## 5b. ENSEMBLE C1 — più trigger della stessa famiglia + lato short ✅ (14 lug 2026)
+
+Era il candidato **C1** della pipeline: la MR di breve è più larga del solo
+RSI2<10 → più trigger standard di letteratura = più occorrenze = compounding,
+stessa natura di rischio. **Validato con l'apparato completo** (nulla sui giorni
+esclusivi, IS/OOS, plateau, stabilità). Flag: `--trigger t1..t6|union`,
+`--exclude-t1` (contributo marginale), `--null N` (test del nulla).
+
+**Contributo marginale dei trigger (SOLO giorni non coperti da t1, exit famiglia
+MA10 + scale-in, netto costi, 2008-2026):**
+
+| Trigger | Regola (soglie standard, non ottimizzate) | Trade nuovi | net/trade | vs nulla |
+|---|---|---|---|---|
+| t2 | 3+ chiusure consecutive giù, uptrend | 70 (~4/yr) | +0.52% | batte 100% ✅ |
+| t3 | %b Bollinger(20,2) < 0.05, uptrend | 57 (~3/yr) | **+1.07%** | batte 100% ✅ |
+| t4 | VIX > 1.05×MA10(VIX), uptrend | **278 (~16/yr)** | +0.48% | batte 100% ✅ |
+| t5 | RSI2 cumulato 2gg < 35, uptrend | 57 (~3/yr) | +0.56% | batte 100% ✅ |
+
+**UNIONE t1-t5 (il portafoglio, config raccomandata `--trigger union --exit-ma 10
+--scale-in 2 --add-thr 5`):**
+
+| Versione | Trade | WR | net/trade | CAGR 1x | CAGR 3x | maxDD 1x |
+|---|---|---|---|---|---|---|
+| t1 solo (baseline) | 144 (~8/yr) | 86% | +0.73% | +6.2% | +18.9% | 10.4% |
+| **UNIONE t1-t5** | **342 (~20/yr)** | 79% | +0.43% | **+8.8%** | **+27.4%** | **10.0%** |
+
+- **2.5× la frequenza, +42% di CAGR, STESSO drawdown.** L'esposizione sale a 25%
+  dei giorni (da 13%) — più capitale al lavoro, stessa coda.
+- **IS/OOS regge:** +0.54%/trade (2008-16) → +0.35% (2017-26), WR 76% — decadimento
+  fisiologico della famiglia, edge presente.
+- **Stabilità:** 16/18 anni positivi; negativi piccoli (2018 −5%, 2022 −4%).
+- **Plateau (non picco):** t4 a soglia 1.10 → +0.63%/trade (regge, anzi meglio
+  per-trade); t3 a %b<0.10 → +0.92% su 75 trade; exit MA5 resta positiva (MA10
+  meglio). Soglie standard di letteratura, nessun tuning.
+
+**t6 — satellite SHORT per i bear (`--trigger t6 --exit-ma 5 --max-hold 7`):**
+`RSI2 > 95 AND close < SMA200` → short; exit RSI2<30 / close<SMA5 / 7gg.
+27 trade (~2/yr), WR 78%, **+0.96%/trade netto**, batte il **100%** del nulla
+(che sui giorni bear è ≈0: shortare a caso lì non paga — il timing sì). Paga
+**esattamente dove serve: 2008 +3%, 2020 +10%, 2022 +9%** — il primo pezzo del
+book che guadagna nei bear ripidi. Da usare come satellite piccolo, non come
+motore (2 trade/anno).
+
+⚠️ Nota onesta: i trigger si sovrappongono nel tempo (una posizione per volta,
+il motore non piramida tra trigger) e t4 domina la frequenza — se il VIX regime
+cambia, l'apporto di t4 va monitorato come per t1.
+
+---
+
 ## 6. Rischi, limiti, prossimi passi
 
 **Limiti onesti:**
@@ -233,7 +290,7 @@ demo. Versione da usare: **intraday** (flat overnight, leverabile).
 
 **Nota diversificazione (dopo):** su US500 i complementi sono scarsi (long-bias);
 per il bot multi-strategia pieno servirà il multi-mercato (FX/commodity/bond,
-Strada B in IG_CONVERSION.md §5). Ma prima portiamo QUESTO edge al vivo.
+Strada B in DIARIO-CONVERSIONE-IG.md §5). Ma prima portiamo QUESTO edge al vivo.
 
 **Riferimenti:** parametri strumento in memoria `ig-demo-us500-params`; connessione
 IG già verificata (`scripts/test_ig_connection.py`); dati in `data/research/`.

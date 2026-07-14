@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Late-Day Drift on US500 (EDGES.md Strategy A) — intraday, flat overnight.
+Late-Day Drift on US500 (INDICE-EDGE.md Strategy A) — intraday, flat overnight.
 
 Thesis: the US cash close (16:00 ET) is dominated by institutional flow (MOC
 orders, rebalancing). Two documented effects: a drift into the close, stronger

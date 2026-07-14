@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Turn-of-Month (ToM) seasonality on US500 (EDGES.md Strategy E).
+Turn-of-Month (ToM) seasonality on US500 (INDICE-EDGE.md Strategy E).
 
 Documented effect (Ariel 1987; Lakonishok & Smidt 1988): the last 2 trading days
 of a month + the first 3 of the next concentrate a disproportionate share of

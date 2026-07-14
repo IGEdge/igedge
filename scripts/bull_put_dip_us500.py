@@ -2,7 +2,7 @@
 """
 EDGE #3 (candidato) — Bull-put sui dip: l'EDGE #1 (dip-buy) espresso via opzioni.
 
-Idea (docs/EDGE-option-combinato.md): quando scatta il segnale VALIDATO del dip-buy
+Idea (docs/STORIA-copertura-put-sui-dip.md): quando scatta il segnale VALIDATO del dip-buy
 (RSI2<10 daily in uptrend, close>SMA200), la volatilità implicita è gonfiata dal
 ribasso. Invece di comprare il CFD, si VENDE un BULL PUT SPREAD (a rischio definito,
 credito) sfruttando: (a) il premio gonfiato dal panico, (b) la mean-reversion

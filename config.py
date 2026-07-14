@@ -3,7 +3,7 @@ Configuration for the IG (CFD US500) conversion.
 
 Only the two strategies still under US500 validation keep a config dataclass
 (Macro Core, Trend Breakdown). Crypto/Deribit strategy configs were removed in
-the cleanup — see docs/IG_CONVERSION.md. Defaults still carry the crypto field
+the cleanup — see docs/DIARIO-CONVERSIONE-IG.md. Defaults still carry the crypto field
 shape (symbol/instrument) but are irrelevant in backtest (the injected
 HistoricalKlineProvider ignores the symbol); they will map to the IG epic when
 the live adapter is built.
@@ -49,7 +49,7 @@ class TrendBreakdownConfig(StrategyConfig):
 @dataclass
 class MacroCoreConfig(StrategyConfig):
     """Regime-following long core: long above SMA200d, chandelier exit at
-    k*ATR20d. FAILED US500 validation (see docs/IG_CONVERSION.md) — kept for
+    k*ATR20d. FAILED US500 validation (see docs/DIARIO-CONVERSIONE-IG.md) — kept for
     reference/experiments only."""
     symbol: str = "US500"
     instrument: str = "IX.D.SPTRD.IFE.IP"

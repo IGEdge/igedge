@@ -94,7 +94,22 @@ def main():
     ap.add_argument("--vix-ma", type=int, default=0, help="VIX rolling-mean window for regime (0=off)")
     ap.add_argument("--regime", choices=["off", "calm", "stormy"], default="off",
                     help="calm=VIX<MA, stormy=VIX>=MA (needs --vix-ma)")
+    # --- C5: timing post-panico (scansione giornaliera, vendi dopo lo spike) ---
+    ap.add_argument("--entry-mode", choices=["calendar", "postspike"], default="calendar",
+                    help="calendar=valuta ogni H giorni (default); postspike=scansione "
+                         "GIORNALIERA, entra solo su spike VIX in raffreddamento (C5)")
+    ap.add_argument("--spike-min", type=float, default=20.0,
+                    help="postspike: VIX minimo perché conti come spike")
+    ap.add_argument("--cool", type=float, default=0.90,
+                    help="postspike: entra se VIX < cool × max(VIX ultimi spike-window gg)")
+    ap.add_argument("--spike-window", type=int, default=10)
+    # --- C2: filtro term-structure VIX/VIX3M ---
+    ap.add_argument("--ts-max", type=float, default=0.0,
+                    help="entra solo se VIX/VIX3M <= questo (1.0=contango, tempesta passata; "
+                         "richiede vix3m_daily.csv, storia dal 2009-09; 0=off)")
     ap.add_argument("--from", dest="dfrom", default="2007-01-01")
+    ap.add_argument("--dump-trades", default=None,
+                    help="scrive i trade in CSV (per i report grafici)")
     args = ap.parse_args()
 
     if not (os.path.exists(VIX_CSV) and os.path.exists(US500_CSV)):
@@ -107,9 +122,20 @@ def main():
     spx = spx.set_index("ts")["close"].rename("spx")
     df = pd.concat([vix, spx], axis=1).dropna()
     df = df[df.index >= pd.Timestamp(args.dfrom)]
+    RATIO = None
+    if args.ts_max > 0:
+        v3path = "data/research/vix3m_daily.csv"
+        if not os.path.exists(v3path):
+            print(f"❌ --ts-max richiede {v3path}"); return 1
+        v3 = pd.read_csv(v3path)
+        v3["ts"] = pd.to_datetime(v3["ts"]).dt.tz_localize(None).dt.normalize()
+        v3 = v3.set_index("ts")["close"].rename("vix3m")
+        df["vix3m"] = v3.reindex(df.index)
+        RATIO = (df["vix"] / df["vix3m"]).values
     S = df["spx"].values
     V = df["vix"].values
     VMA = df["vix"].rolling(args.vix_ma).mean().values if args.vix_ma > 0 else None
+    VMAXW = df["vix"].rolling(args.spike_window).max().values
     idx = df.index
     n = len(df)
     H = args.horizon
@@ -132,9 +158,16 @@ def main():
         if args.regime != "off" and VMA is not None and np.isfinite(VMA[i]):
             calm = V[i] < VMA[i]
             ok = ok and (calm if args.regime == "calm" else not calm)
+        # C5 postspike: spike recente in raffreddamento (scansione giornaliera)
+        if args.entry_mode == "postspike":
+            ok = ok and V[i] >= args.spike_min and np.isfinite(VMAXW[i]) \
+                 and V[i] < args.cool * VMAXW[i]
+        # C2 term structure: vendi solo se la tempesta è passata (contango)
+        if RATIO is not None:
+            ok = ok and np.isfinite(RATIO[i]) and RATIO[i] <= args.ts_max
         if not ok:
             skipped += 1
-            i += H
+            i += 1 if args.entry_mode == "postspike" else H
             continue
         sT = iv * np.sqrt(T)                       # implied move (fraction) to expiry
         s_exp = S[i + H]
@@ -187,12 +220,17 @@ def main():
         trades.append({"date": idx[i].date(), "year": idx[i].year,
                        "credit": credit, "maxloss": maxloss,
                        "credit_put": credit_put, "credit_call": credit_call,
-                       "ret": ret_on_risk, "spx_move": s_exp / s0 - 1})
+                       "ret": ret_on_risk, "spx_move": s_exp / s0 - 1,
+                       "vix": V[i], "spot": s0, "k_short": Kp1, "k_wing": Kp2,
+                       "exp_date": idx[i + H].date()})
         i += H
 
     t = pd.DataFrame(trades)
     if len(t) == 0:
         print("no trades"); return 0
+    if args.dump_trades:
+        t.to_csv(args.dump_trades, index=False)
+        print(f"[dump] {len(t)} trade → {args.dump_trades}")
 
     # equity: risk risk_frac of equity as the max-loss each trade
     eq = 1.0; curve = []
@@ -212,6 +250,10 @@ def main():
         reg += f" VIX∈[{args.vix_min:.0f},{args.vix_max:.0f}]"
     if args.regime != "off":
         reg += f" regime={args.regime}(MA{args.vix_ma})"
+    if args.entry_mode == "postspike":
+        reg += f" POSTSPIKE(VIX≥{args.spike_min:.0f}, <{args.cool:.2f}×max{args.spike_window}gg)"
+    if args.ts_max > 0:
+        reg += f" TS(VIX/VIX3M≤{args.ts_max})"
     skew_txt = f" skew={args.skew*100:.1f}pt/σ" if args.skew else ""
     if args.tail_hedge:
         skew_txt += f" +tail-hedge@{args.tail_hedge}σ×{args.hedge_mult:g}"

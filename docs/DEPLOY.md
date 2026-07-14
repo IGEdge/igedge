@@ -57,6 +57,16 @@ git pull
 docker compose up -d --build      # ricostruisce e riavvia
 ```
 
+## 8. Sampler OPZIONI (servizio separato, cartella dedicata)
+Il gate degli edge opzioni (#2 put-spread, #3 call mensile) gira in un container
+autonomo che ogni giorno campiona lo skew IG e controlla i segnali (plan-only,
+MAI ordini). Tutto in **`deploy/sampler-opzioni/`** (compose + README con le
+istruzioni complete + `pull-data` per scaricare i dati dal Pi al PC):
+```bash
+cd deploy/sampler-opzioni && docker compose up -d --build
+```
+Richiede nel `.env` anche le chiavi `IG_LIVE_*` (conto reale opzioni).
+
 ## Note
 - Su Linux `truststore` è un no-op (niente proxy che intercetta il TLS): la
   verifica certificati standard funziona.

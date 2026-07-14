@@ -54,6 +54,12 @@ class CondorStore:
             """
         )
         self._conn.commit()
+        # migrazione: colonna strategy (condor | putspread | callspread)
+        try:
+            self._conn.execute("ALTER TABLE condors ADD COLUMN strategy TEXT")
+            self._conn.commit()
+        except sqlite3.OperationalError:
+            pass    # già presente
 
     # ------------------------------------------------------------------
     def record(self, c: Condor) -> int:
@@ -61,10 +67,11 @@ class CondorStore:
         size = c.legs[0].size if c.legs else 0.0
         cur = self._conn.execute(
             "INSERT INTO condors (expiry, underlying_epic, entry_spot, entry_vix, "
-            "target_credit, max_loss, size, status, opened_ts) "
-            "VALUES (?,?,?,?,?,?,?,?,?)",
+            "target_credit, max_loss, size, status, opened_ts, strategy) "
+            "VALUES (?,?,?,?,?,?,?,?,?,?)",
             (c.expiry, c.underlying_epic, c.entry_spot, c.entry_vix,
-             c.target_credit, c.max_loss, size, c.status, c.opened_ts or _utc()))
+             c.target_credit, c.max_loss, size, c.status, c.opened_ts or _utc(),
+             getattr(c, "strategy", None) or "condor"))
         cid = cur.lastrowid
         for l in c.legs:
             self._conn.execute(
@@ -111,6 +118,10 @@ class CondorStore:
                    max_loss=row["max_loss"], status=row["status"],
                    opened_ts=row["opened_ts"])
         c.store_id = row["id"]      # comodità per il monitor
+        try:
+            c.strategy = row["strategy"] or "condor"
+        except (IndexError, KeyError):
+            c.strategy = "condor"
         return c
 
     def get_open(self) -> List[Condor]:

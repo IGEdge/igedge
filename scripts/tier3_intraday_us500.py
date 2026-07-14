@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """
-Tier-3 speculative intraday ideas on US500 (EDGES.md G & H) — tested for
+Tier-3 speculative intraday ideas on US500 (INDICE-EDGE.md G & H) — tested for
 completeness now that Tier 1-2 are exhausted. Both are intraday long-only, so the
-known intraday-long HEADWIND (see EDGES.md "Lezione #2") is expected to bite.
+known intraday-long HEADWIND (see INDICE-EDGE.md "Lezione #2") is expected to bite.
 
   G  volatility-squeeze breakout: after a Bollinger(20,2) bandwidth squeeze
      (bw < 10th pct of last 50), long the up-breakout above VWAP; target = entry

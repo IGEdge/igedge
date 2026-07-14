@@ -1,7 +1,7 @@
 """
 PositionStore — stato persistente delle posizioni (SQLite) + reconcile con IG.
 
-La spina dorsale della sicurezza (docs/BOT_ARCHITECTURE.md §2A): ogni posizione
+La spina dorsale della sicurezza (docs/ARCHITETTURA-BOT.md §2A): ogni posizione
 aperta è registrata con il suo dealId e sopravvive ai riavvii. A ogni ciclo si
 riconcilia con lo stato reale su IG per non tradare mai alla cieca:
 

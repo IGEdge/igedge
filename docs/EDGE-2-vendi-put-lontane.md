@@ -3,7 +3,7 @@
 L'unico edge su opzioni IG che **sopravvive al pricing reale**. Vende il premio
 ricco delle **put OTM** (skew azionario, strutturale e persistente) con una
 struttura a **rischio definito**, tenuta **a scadenza**. Sostituisce l'iron condor
-(❌ falsificato — vedi [EDGE_SHORTVOL.md](EDGE_SHORTVOL.md): il lato call, a sconto
+(❌ falsificato — vedi [STORIA-iron-condor.md](STORIA-iron-condor.md): il lato call, a sconto
 su IG, faceva perdere l'intera struttura).
 
 > **Documento vivo.** Stato in cima, dettagli sotto.
@@ -27,6 +27,11 @@ python scripts/short_vol_us500.py --strat putspread --a 1.5 --b 3.0 \
 # più sicuro (ala più lontana, meno rendimento):  --a 1.5 --b 4.0
 # più aggressivo (short più vicino):               --a 1.0 --b 3.0
 # far-OTM stile "-10%" (2σ): WR ~100% ma rende poco: --a 2.0 --b 3.0
+
+# ► CAPITALE PICCOLO + TIMING POST-PANICO (config OPERATIVA raccomandata, §4b/§4c):
+python scripts/short_vol_us500.py --strat putspread --a 1.5 --b 2.5 \
+       --spread-leg 1.0 --real-smile --risk-frac 0.35 \
+       --entry-mode postspike --spike-min 20 --cool 0.90 --ts-max 1.0
 ```
 
 Script: `scripts/short_vol_us500.py` (`--strat putspread --real-smile`).
@@ -97,7 +102,9 @@ Put-spread, mosse reali dell'S&P a scadenza, ~8 trade/anno:
 | Config (short/ala) | ≈ short | WR | ret/trade | t | CAGR@10% | maxDD | peggior trade |
 |---|---|---|---|---|---|---|---|
 | **1.5σ / 3σ** ⭐ | −7% | 97% | +1.8% | +9.1 | **+1.5%** | 2% | −23% |
+| **1.5σ / 2.5σ** ⭐ CAPITALE PICCOLO | −7% | 97% | +2.0% | +6.6 | +1.7% | 4% | −36% |
 | 1.5σ / 4σ | −7% | 97% | +1.4% | +11.7 | +1.2% | 1% | −14% |
+| 1.5σ / 2σ | −7% | 97% | +1.5% | +2.5 | +1.2% | 7% | −74% |
 | 1.0σ / 3σ | −5% | 92% | +2.0% | +3.9 | +1.7% | 4% | −42% |
 | 2.0σ / 3σ | −11% | 100% | +1.1% | +30 | +0.9% | 0% | (mai) |
 
@@ -106,12 +113,71 @@ Put-spread, mosse reali dell'S&P a scadenza, ~8 trade/anno:
 - **Modesto** al sizing prudente (~+1.5% CAGR): l'ala cara spreme il premio ricco.
 - Il **tail-hedge esplicito NON aiuta** (costa premio; l'ala È già la copertura).
 
+### ⭐ Config CAPITALE PICCOLO (€1.000-3.000) — short 1.5σ / ala 2.5σ (14 lug 2026)
+Con capitale piccolo la max-loss ASSOLUTA del contratto decide il sizing, non la
+frazione di rischio: **ala più vicina (2.5σ) = width ~1σ ≈ $330-400 di max loss
+per contratto** (vs ~$550-600 dell'ala 3σ). Backtest (pricing reale): WR 97%,
+**+2.0%/trade del capitale a rischio**, t=+6.6, peggior trade −36% del rischio.
+Al sizing FORZATO di 1 contratto:
+- **€1.000** (rischio ~35%/trade): **CAGR +5.9%/yr ≈ €60/anno, maxDD 13%**,
+  peggior trade −€120 (−12% del conto), cigno nero cappato a ~−€340.
+- **€2.000** (~18%): CAGR +3.0%, maxDD 6% — oppure 2 contratti = profilo €1000 ×2.
+- Comando: `--strat putspread --a 1.5 --b 2.5 --spread-leg 1.0 --vix-min 14
+  --vix-max 30 --real-smile --risk-frac 0.35`
+- Il compounding scatta **a gradini**: +1 contratto ogni ~€1.000 di equity.
+- Ali ancora più strette (2σ) NON conviene: t crolla a 2.5, peggior trade −74%.
+
 ### Compounding / sizing
-È così sicuro (maxDD 2%) che **scala col sizing**: a size moderata (mirando a una
-perdita-singola-trade tollerabile, ~4× il base 10%) → **~+6% CAGR, maxDD ~9%**,
-coda cappata. ⚠️ Il limite è il **cigno nero** (>3σ oltre l'ala = perdita piena su
-quel trade): NON sovra-dimensionare. La frequenza settimanale NON aiuta (lo spread
-mangia il premio minuscolo delle weekly).
+È così sicuro (maxDD 2% a 10%) che **scala col sizing**: a size moderata
+(perdita-singola-trade tollerabile) → **~+6% CAGR, maxDD ~9-13%**, coda cappata.
+⚠️ Il limite è il **cigno nero** (oltre l'ala = perdita piena su quel trade):
+NON sovra-dimensionare. La frequenza settimanale NON aiuta (lo spread mangia il
+premio minuscolo delle weekly).
+
+### ⭐ 4c. TIMING D'INGRESSO — vendere SOLO post-panico (C5+C2, 14 lug 2026)
+
+**Scoperta di onestà sul calendario:** il backtest calendario è **fragile alla
+fase** (spostando la data di partenza, la griglia dei 21 giorni cambia e il
+trade killer di feb 2020 entra o esce: worst da −36% a **−100%**, maxDD@35% da
+13% a 35%). Il tail vero del programma calendario INCLUDE il −100% del rischio:
+un crash che parte dalla calma non è filtrabile da nessun segnale d'ingresso.
+
+**La soluzione (testata, finestra 2009-2026 a parità di condizioni):** entrare
+SOLO dopo il panico, quando il premio è ricco e la tempesta sta passando:
+`VIX ≥ 20` **E** `VIX < 0.90 × max(VIX 10gg)` (spike in raffreddamento, C5)
+**E** `VIX/VIX3M ≤ 1.0` (term structure rientrata, C2). Scansione giornaliera.
+
+| Modalità (2009-2026, 1.5σ/2.5σ, rischio 35%) | Trade/anno | ret/trade | t | peggior | maxDD | CAGR |
+|---|---|---|---|---|---|---|
+| Calendario VIX[14,30] | ~9 | +1.4% | 1.9 | **−100%** | 35% | +3.8% |
+| Calendario + TS≤1 (C2 da solo) | ~8 | +1.4% | 1.7 | −100% | 35% | +3.4% |
+| Postspike (C5 da solo) | ~4 | +2.3% | 6.4 | −21% | 7% | +3.3% |
+| **Postspike + TS (C5+C2)** ⭐ | ~4 | **+2.7%** | **+31.6** | **−1%** | **0%** | +3.4% |
+
+- **C2 da solo NON salva il calendario** (feb 2020 era in contango: entrata di
+  calma → nessun filtro d'ingresso la evita). Bocciato come filtro standalone.
+- **C5+C2 = quasi mai una perdita in 17 anni** (59 trade, 1 perdita da −1%):
+  eviti per costruzione le entrate di calma pre-crash, e il TS blocca le entrate
+  premature durante la tempesta (senza TS il 2020 costa −21%).
+- **⚠️ Caveat onesti:** (1) **2008 non coperto dal TS** (VIX3M parte set-2009):
+  il postspike DA SOLO nel 2008 prende **−79%** (secondo tonfo di novembre); il
+  TS in backwardation persistente l'avrebbe *probabilmente* bloccato, ma non è
+  verificabile → **il tail resta possibile: dimensiona come se il −100% potesse
+  accadere**. (2) Sensibilità al parametro `cool`: 0.95 perfetto / 0.90 buono /
+  0.85 degrada — non è un plateau pulito, si usa lo 0.90 pre-registrato senza
+  tuning. (3) ~4 trade/anno: meno ricorrente del calendario.
+- Comando: `--entry-mode postspike --spike-min 20 --cool 0.90 --ts-max 1.0`
+  (VIX3M: `data/research/vix3m_daily.csv`, scaricato dal CBOE).
+
+**Su €1.000 REALI (contratti interi, 1 per €1.000 di equity — sim nel report
+grafico):** post-panico finale **€1.329** (+€329 in 16,6 anni ≈ **~€20/anno**),
+mai un mese sotto −2%; calendario €1.402 ma col mese in cui perde l'INTERO
+rischio (feb 2020 — e lì per fortuna il rischio era piccolo, VIX basso).
+Il rendimento a rischio-fisso 35% (+3.4%/anno) NON si raggiunge coi contratti
+interi perché il rischio reale mediano/contratto è ~€200, non €350.
+**Raccomandato: C5+C2 come modalità d'ingresso del pilot.**
+**→ Report grafico completo (14 figure, esempi, capitali reali):
+[report/report-edges.html](report/report-edges.html)**
 
 ---
 
@@ -142,7 +208,7 @@ comprata, poi la short → mai short nudo). Componenti:
   `_discover_code` — mai le fine-mese (EMO).
 - **Throttle** (anti rate-limit), **store** (SQLite), **monitor** (P&L/DTE/reconcile),
   **orchestrator** (`run_condor.py`, plan-only di default).
-- Conto reale opzioni: `TVYYM` (`.env` `IG_LIVE_*`). Vedi EDGE_SHORTVOL.md §6/§9.
+- Conto reale opzioni: `TVYYM` (`.env` `IG_LIVE_*`). Vedi STORIA-iron-condor.md §6/§9.
 
 Adattamento minimo: una variante orchestratore che apre **solo il put-spread**
 (2 gambe) invece del condor.
@@ -151,15 +217,23 @@ Adattamento minimo: una variante orchestratore che apre **solo il put-spread**
 
 ## 7. Next steps (in ordine)
 
-1. **⭐ Confermare lo skew nel tempo (il gate di validazione).** I rapporti IV/VIX
-   vengono da 1 giorno. Scrivere un **sampler giornaliero** (riusa la sessione) che
-   logga lo smile IG (ATM/1σ/2σ put e call vs VIX) per **~2-4 settimane** e su
-   diversi livelli di VIX. Verificare che l'ATM ~0.77-0.88 e la pendenza put ~0.30
-   reggano. **Se lo smile reale è meno favorevole (ATM verso 0.9), l'edge si
-   assottiglia** → rifare i conti coi rapporti veri medi. È il passo che ci ha
-   salvato dal condor: NON andare live prima di questo.
-2. **Adapter put-spread:** variante di `orchestrator.py` che costruisce e apre le
-   2 gambe (short 1.5σ + ala 3σ) invece del condor. Riusa executor/store/monitor.
+1. **⭐ Confermare lo skew nel tempo (gate di validazione) — SAMPLER ATTIVO
+   (14 lug 2026).** Script: `python scripts/sample_skew_us500.py --live`
+   (1×/giorno, read-only, ~14 chiamate throttlate) → appende a
+   `data/research/skew_samples.csv`; `--report` = riepilogo vs modello. Servono
+   **~10-20 campioni** su diversi livelli di VIX. **Primo campione (14 lug,
+   VIX 16.8):** atm_ratio **0.80** (modello 0.77), put_slope **0.301** (modello
+   0.30 — esatto, e LINEARE fino a 3σ: ratio 1.22@1.5σ, 1.73@3σ → anche
+   l'estrapolazione far-OTM regge), call_slope 0.07 (devia, ma al put-spread non
+   serve). **Se l'ATM medio va verso 0.9, l'edge si assottiglia** → rifare i
+   conti coi rapporti medi veri. NON andare live prima di questo gate.
+2. ✅ **Adapter put-spread FATTO (14 lug 2026):** `scripts/run_spread.py --strat
+   putspread --live` (plan-only di default; `--arm --i-understand-live-risk` per
+   aprire). Modulo `src/options/spread_orchestrator.py`: 2 gambe (ala comprata
+   PRIMA, poi la short → mai nudi), segnale post-panico+TS calcolato in
+   automatico (VIX/VIX3M dal CBOE, max 10gg), sizing 1 contratto/€1000, store
+   con colonna `strategy`. Verificato plan-only sul reale (salta correttamente
+   con VIX 16.4 < 20).
 3. **Gate di rischio + sizing:** size moderata (perdita-singola-trade tollerabile,
    NON aggressiva); banda VIX[14,30]; max 1 posizione/scadenza.
 4. **Paper/pilot sul reale** (piccolo): loggare fill/spread/settlement veri vs
@@ -181,5 +255,5 @@ Adattamento minimo: una variante orchestratore che apre **solo il put-spread**
 | Backtest put-spread (pricing reale) | `scripts/short_vol_us500.py --strat putspread --real-smile` |
 | Infrastruttura live | `src/options/` (session, executor, chain_resolver, store, monitor, orchestrator, throttle) |
 | CLI operativa (plan-only) | `scripts/run_condor.py` (da adattare al put-spread) |
-| Condor falsificato (storia + lezione) | `docs/EDGE_SHORTVOL.md` |
+| Condor falsificato (storia + lezione) | `docs/STORIA-iron-condor.md` |
 | Dati | `data/research/vix_daily.csv`, `us500_daily.csv` |

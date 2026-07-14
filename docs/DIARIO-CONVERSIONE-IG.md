@@ -133,7 +133,7 @@ net/trade +0.38-0.46% (**sopravvive ai costi**: pochi trade + hold corti),
 **regge out-of-sample** (WR 79% su 2018-2026 mai visto), **robusto** (9/9 combo
 parametri positive). Raw ~3-4%/yr a 1x con maxDD ~11-14%; scalabile a 2-3x
 (~6-11%/yr, DD 21-39%). Il financing è piccolo e leva-neutro; il limite è il
-peggior trade / gap-risk. Documentazione completa: **[EDGE_BUYTHEDIP.md](EDGE_BUYTHEDIP.md)**.
+peggior trade / gap-risk. Documentazione completa: **[EDGE-1-compra-il-dip.md](EDGE-1-compra-il-dip.md)**.
 Script: `scripts/mean_reversion_us500.py`. Prossimo: catastrophe stop + test
 variante intraday + combinare edge.
 
@@ -164,8 +164,8 @@ US500, `config.py` (riscritto IG-oriented), i dati in `data/research/`.
 
 **Stato al 11 lug 2026 — EDGE TROVATO, DECISIONE = A (esecuzione live demo).**
 Trovato il primo edge reale: **buy-the-dip intraday + scale-in** (vedi §3 e
-**[EDGE_BUYTHEDIP.md](EDGE_BUYTHEDIP.md)**). Deciso di costruirci sopra il bot e
-portarlo su IG demo. **Piano concreto: EDGE_BUYTHEDIP.md §7** (esecuzione IG +
+**[EDGE-1-compra-il-dip.md](EDGE-1-compra-il-dip.md)**). Deciso di costruirci sopra il bot e
+portarlo su IG demo. **Piano concreto: EDGE-1-compra-il-dip.md §7** (esecuzione IG +
 sizing con leva + runtime strategia + paper trading demo). Le "tre strade" qui
 sotto restano come contesto storico; B (multi-mercato) è il seguito naturale per
 la diversificazione, dopo aver portato al vivo l'edge attuale.

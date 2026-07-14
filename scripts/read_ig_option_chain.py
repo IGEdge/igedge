@@ -1,13 +1,13 @@
 #!/usr/bin/env python3
 """
-Read-only reader of the IG US500 option chain (per EDGE_SHORTVOL.md).
+Read-only reader of the IG US500 option chain (per STORIA-iron-condor.md).
 
 SOLO LETTURA: fa login, cerca/naviga le opzioni US500, e stampa la catena
 (strike, bid/ask, spread per gamba) + i contract details (settlement, size,
 commissioni). NON piazza NESSUN ordine — usa esclusivamente login/search/
 get_market/marketnavigation/logout.
 
-Demo o Live (le mensili vanilla stanno sul REALE, vedi EDGE_SHORTVOL.md §6):
+Demo o Live (le mensili vanilla stanno sul REALE, vedi STORIA-iron-condor.md §6):
   python scripts/read_ig_option_chain.py            # demo (IG_* — set daily/knockout)
   python scripts/read_ig_option_chain.py --live     # reale (IG_LIVE_* — catena mensile)
 

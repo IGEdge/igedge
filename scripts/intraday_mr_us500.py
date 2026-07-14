@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Intraday mean-reversion on US500 (EDGES.md Strategy B) — the sub-daily extension
+Intraday mean-reversion on US500 (INDICE-EDGE.md Strategy B) — the sub-daily extension
 of the VALIDATED Edge #1 (daily RSI2 dip-buy). Same family, faster timeframe.
 
 Thesis: on a liquid index, short-term oversold extremes on 15m bars revert (market

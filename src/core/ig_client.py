@@ -338,7 +338,7 @@ class IGClient:
 
     # ------------------------------------------------------------------
     # Execution (OTC positions). Every deal returns a dealReference that MUST
-    # be confirmed via confirm() — do not assume the fill. See BOT_ARCHITECTURE.
+    # be confirmed via confirm() — do not assume the fill. See ARCHITETTURA-BOT.md.
     # ------------------------------------------------------------------
 
     def get_positions(self) -> List[Dict[str, Any]]:
