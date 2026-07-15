@@ -1,7 +1,15 @@
 # STATO DEL PROGETTO — checkpoint del 15 luglio 2026
 
 > **Perché questo file:** fotografia di dove siamo, cosa gira da solo, e cosa
-> fare quando riprendiamo (~5 agosto 2026, dopo 3 settimane di campioni).
+> fare quando riprendiamo.
+
+## 📅 LE DUE DATE DEL CAMPIONAMENTO
+- **INIZIO: mercoledì 15 luglio 2026** — primo giorno di raccolta autonoma sul
+  Raspberry (3 campioni già in cassa dai test del 14-15).
+- **FINE: mercoledì 5 agosto 2026** — ~15 giorni di borsa raccolti → quel
+  giorno apri **https://igedge.antoniotrento.net**: se dice "🎯 GATE
+  CHIUDIBILE", scarica `skew_samples.csv` col bottone (o `pull-data.bat` dal
+  PC) e si decide il pilot.
 
 ---
 
