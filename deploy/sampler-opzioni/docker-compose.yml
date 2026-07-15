@@ -27,10 +27,15 @@ services:
       - SAMPLER_RUN_AT=16:30        # orario giornaliero (TZ sotto)
       - SAMPLER_RETRIES=3
       - TZ=Europe/Rome
+      - GAMMA_SCANNER_DIR=/gamma    # la guardia legge /gamma/data/cache/market_state_spy.json
+      # - GUARD_MODE=shadow         # guardia solo-log (default: active = modula)
     volumes:
       - ../../data:/app/data:rw
       - ../../logs:/app/logs:rw
       - ../../.env:/app/.env:rw
+      # GUARDIA SOFT (docs/GUARDIA-SOFT.md): cache del Gamma-Regime-Divergence-
+      # Scanner sul Pi, montata in SOLA LETTURA (percorso reale del Pi di Antonio):
+      - /home/antonio/gamma-data/cache:/gamma/data/cache:ro
     dns:
       - 8.8.8.8
       - 1.1.1.1

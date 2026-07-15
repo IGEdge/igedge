@@ -140,13 +140,32 @@ def main():
     orch = SpreadOrchestrator(client, store, execu, audit=audit,
                               spread_cfg=SpreadConfig(capital_eur=args.capital))
 
+    # GUARDIA SOFT: stato dal Gamma-Regime-Divergence-Scanner + stagionalità.
+    # MODULA (strike/size), NON blocca mai. GUARD_MODE=shadow → solo log.
+    # La stagionalità si valuta sul mese di ESPOSIZIONE del trade (~centro vita
+    # di un mensile aperto oggi = +18 giorni), non sul mese di apertura.
+    from datetime import datetime, timedelta
+
+    from src.guard import decide, read_guard_state
+    gstate = read_guard_state()
+    gdec = decide(gstate, when=datetime.now() + timedelta(days=18))
+    shadow = os.getenv("GUARD_MODE", "active").lower() == "shadow"
+    print(f"GUARDIA  livello {gdec['level']} (score effettivo {gdec['eff_score']:.0f})"
+          f"{'  [SHADOW: solo log, nessuna modulazione]' if shadow else ''}")
+    for r in gdec["reasons"]:
+        print(f"         · {r}")
+    if gstate.get("warning"):
+        print(f"         ⚠️ {gstate['warning']}")
+    guard = None if shadow else gdec
+
     sig = gather_signals()
     if args.vix is not None:
         sig["vix_now"], sig["vix_src"] = args.vix, "override"
-    print(f"SEGNALI  VIX {sig['vix_now']}{'' if sig['vix_now'] is None else f' ({sig['vix_src']})'}"
-          f"   max10gg {sig['vix10max'] and round(sig['vix10max'],1)}"
-          f"   VIX3M {sig['vix3m'] and round(sig['vix3m'],2)}"
-          f"   VIX/VIX3M {sig['ts_ratio'] and round(sig['ts_ratio'],3)}"
+    vix_txt = "n/d" if sig["vix_now"] is None else f"{sig['vix_now']} ({sig['vix_src']})"
+    print(f"SEGNALI  VIX {vix_txt}"
+          f"   max10gg {sig['vix10max'] and round(sig['vix10max'], 1)}"
+          f"   VIX3M {sig['vix3m'] and round(sig['vix3m'], 2)}"
+          f"   VIX/VIX3M {sig['ts_ratio'] and round(sig['ts_ratio'], 3)}"
           f"   SMA200 {sig['sma200'] and round(sig['sma200'])} ({sig['sma_note']})")
     if sig["vix_now"] is None:
         print("❌ VIX non disponibile"); return 1
@@ -155,7 +174,7 @@ def main():
     for strat in strats:
         print("\n" + "=" * 62)
         print(f"[{strat.upper()}]  {'🔴 ARMATO' if armed else '🟢 plan-only'}   capitale €{args.capital:,.0f}".replace(",", "."))
-        plan = orch.run_spread(strat, armed=armed,
+        plan = orch.run_spread(strat, armed=armed, guard=guard,
                                vix_now=sig["vix_now"], vix_src=sig["vix_src"],
                                vix10max=sig["vix10max"], ts_ratio=sig["ts_ratio"],
                                sma200=sig["sma200"])

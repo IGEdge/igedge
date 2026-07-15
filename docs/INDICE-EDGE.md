@@ -96,6 +96,7 @@ lezioni permanenti. Non ritestare senza un angolo genuinamente nuovo. Sintesi:
 | File | Contenuto | Categoria |
 |---|---|---|
 | [INDICE-EDGE.md](INDICE-EDGE.md) | questo indice | — |
+| [STATO-PROGETTO.md](STATO-PROGETTO.md) | **checkpoint 15 lug 2026**: cosa gira da solo + checklist ripresa ~5 ago | 📌 |
 | [EDGE-1-compra-il-dip.md](EDGE-1-compra-il-dip.md) | edge #1 dip-buy CFD: regole, numeri, leva, comandi | ✅ |
 | [EDGE-2-vendi-put-lontane.md](EDGE-2-vendi-put-lontane.md) | edge #2 put-spread opzioni: doc vivo, gate, next steps | 🟡 |
 | [EDGE-candidati-da-testare.md](EDGE-candidati-da-testare.md) | 7 candidati DA backtestare, spec pre-registrate | ⬜ |

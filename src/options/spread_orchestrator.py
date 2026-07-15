@@ -93,8 +93,18 @@ class SpreadOrchestrator(Orchestrator):
     def plan_spread(self, strat: str, vix_now: float, vix_src: str = "?",
                     vix10max: Optional[float] = None,
                     ts_ratio: Optional[float] = None,
-                    sma200: Optional[float] = None) -> dict:
+                    sma200: Optional[float] = None,
+                    guard: Optional[dict] = None) -> dict:
+        """guard (opzionale) = decisione della GUARDIA SOFT (src/guard):
+        {'level', 'params': {...}, ...}. MODULA strike/size, NON blocca mai."""
         c = self.scfg
+        g_ps = (guard or {}).get("params", {}).get("putspread", {})
+        g_cs = (guard or {}).get("params", {}).get("callspread", {})
+        ps_a = g_ps.get("a", c.ps_short_sig)
+        ps_b = g_ps.get("b", c.ps_wing_sig)
+        cs_m1 = g_cs.get("m1", c.cs_long_sig)
+        cs_m2 = g_cs.get("m2", c.cs_short_sig)
+        size_mult = (g_ps if strat == "putspread" else g_cs).get("size_mult", 1.0)
         # gate posizioni (per strategia: il DB è condiviso col condor)
         n_open = len([x for x in self.store.get_open()
                       if getattr(x, "strategy", "condor") == strat])
@@ -120,8 +130,8 @@ class SpreadOrchestrator(Orchestrator):
 
         sT = (vix_now / 100.0) * math.sqrt(max(dte, 1) / 365.0)   # mossa implicita
         if strat == "putspread":
-            k_short = int(round_strike(spot * (1 - c.ps_short_sig * sT), 50))
-            k_long = int(round_strike(spot * (1 - c.ps_wing_sig * sT), 50))
+            k_short = int(round_strike(spot * (1 - ps_a * sT), 50))
+            k_long = int(round_strike(spot * (1 - ps_b * sT), 50))
             if k_long >= k_short:
                 k_long = k_short - 50
             q_short = self._quote(code, k_short, "PUT")
@@ -138,8 +148,8 @@ class SpreadOrchestrator(Orchestrator):
                          ("short_put", "SELL", "PUT", q_short)]
             risk_pts, reward_pts = maxloss, credit
         else:   # callspread
-            k_long = int(round_strike(spot * (1 + c.cs_long_sig * sT), 50))
-            k_short = int(round_strike(spot * (1 + c.cs_short_sig * sT), 50))
+            k_long = int(round_strike(spot * (1 + cs_m1 * sT), 50))
+            k_short = int(round_strike(spot * (1 + cs_m2 * sT), 50))
             if k_short <= k_long:
                 k_short = k_long + 50
             q_long = self._quote(code, k_long, "CALL")
@@ -157,8 +167,9 @@ class SpreadOrchestrator(Orchestrator):
                          ("short_call", "SELL", "CALL", q_short)]
             risk_pts, reward_pts = debit, width - debit
 
-        # sizing: contratti interi, 1 ogni eur_per_contract di capitale
-        size = max(1, int(c.capital_eur // c.eur_per_contract))
+        # sizing: contratti interi, 1 ogni eur_per_contract di capitale;
+        # la guardia può RIDURRE la size (mai sotto 1: si opera sempre)
+        size = max(1, int((c.capital_eur // c.eur_per_contract) * size_mult))
         risk_eur = risk_pts * c.usd2eur * size
 
         legs = [Leg(role=r, epic=q["epic"], direction=d, kind=k,
@@ -176,14 +187,20 @@ class SpreadOrchestrator(Orchestrator):
                 "risk_eur": round(risk_eur, 0),
                 "quotes": {r: {"bid": q["bid"], "offer": q["offer"],
                                "strike": q["strike"]} for r, _, _, q in legs_meta}}
+        if guard:
+            plan["guard"] = {"level": guard.get("level"),
+                             "eff_score": guard.get("eff_score"),
+                             "reasons": guard.get("reasons")}
         self.audit.info("spread_plan", strat=strat, desc=spread.describe(),
                         risk_pts=plan["risk_pts"], reward_pts=plan["reward_pts"],
-                        size=size, risk_eur=plan["risk_eur"], signal=sig["reason"])
+                        size=size, risk_eur=plan["risk_eur"], signal=sig["reason"],
+                        guard=(guard or {}).get("level", "nessuna"))
         return plan
 
     # ------------------------------------------------------------- run
-    def run_spread(self, strat: str, armed: bool = False, **signals) -> dict:
-        plan = self.plan_spread(strat, **signals)
+    def run_spread(self, strat: str, armed: bool = False,
+                   guard: Optional[dict] = None, **signals) -> dict:
+        plan = self.plan_spread(strat, guard=guard, **signals)
         if not plan.get("ok"):
             self.audit.info("spread_skip", strat=strat, reason=plan.get("reason"))
             return plan

@@ -40,6 +40,26 @@ CAGR −0.5%. Confermato con **misura diretta** dei prezzi reali IG (credito rea
 = 43% del modello-a-VIX). Script: `short_vol_us500.py --strat condor --real-smile`.
 **Il figlio sopravvissuto (solo lato put) è [EDGE-2-vendi-put-lontane.md](EDGE-2-vendi-put-lontane.md)** (🟡 validato con gate).
 
+### ❌ COPERTURA REATTIVA in-trade sul put-spread (14 lug 2026)
+`scripts/hedge_reactive_us500.py`. L'idea (dell'utente, sensata a priori): lo
+spread resta aperto; se il mercato rompe una soglia durante il trade → compri
+una put ATM; la rivendi al picco del panico (o a scadenza), eventualmente
+chiudendo anche lo spread in modo coordinato. **Falsificata su TUTTE le
+varianti** (trigger 1.0/1.25/1.5σ × exit raffreddamento/scadenza × ±chiusura
+coordinata, su 2009-2026 E 2007-2026 col 2008): il programma adottato passa da
+**+2.7%/trade (t=+31.6) a −0.2…+0.3% (t≈0)**; nel 2008 il trade killer va da
+−79% a −105% (variante cool) o −68% (expiry) ma i falsi allarmi affondano il
+totale. **Perché fallisce (strutturale):** (1) l'85-90% delle rotture di soglia
+RECUPERA entro scadenza (è il motivo per cui la strategia ha WR 97-98%) → quasi
+ogni copertura è un falso allarme; (2) comprare la put DOPO la rottura = pagare
+la volatilità al prezzo del panico — **esattamente il pedaggio che la strategia
+incassa dagli altri**: reattivi si è sempre dalla parte sbagliata dello skew.
+**La protezione vera è già nella struttura:** l'ala comprata ALL'INGRESSO (prima
+della tempesta, a prezzo giusto) + sizing 1 contratto/€1000 (perdita massima
+~−€340) + la guardia soft che allarga gli strike nei regimi fragili. Possibile
+angolo futuro NON testato: trigger INTRADAY (reagire prima che l'IV esploda) —
+richiede dati intraday di opzioni che non abbiamo; da valutare solo col pilot.
+
 ### ❌ Varianti e hedge bocciati (13-14 lug 2026)
 - **Bull-put sui dip come copertura del condor** (`bull_put_dip_us500.py`,
   [STORIA-copertura-put-sui-dip.md](STORIA-copertura-put-sui-dip.md)): short-put = stesso
