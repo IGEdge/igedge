@@ -49,6 +49,12 @@ def make_client(live):
 
 
 def main():
+    print("=" * 70)
+    print("⛔ DEPRECATO: l'IRON CONDOR è FALSIFICATO al pricing reale (14 lug 2026)")
+    print("   — il lato call IG (a sconto) rende il condor perdente.")
+    print("   Strategie operative: scripts/run_spread.py (putspread/callspread).")
+    print("   Questo script resta SOLO come storia/debug. NON usarlo per trading.")
+    print("=" * 70)
     ap = argparse.ArgumentParser()
     ap.add_argument("--live", action="store_true")
     ap.add_argument("--arm", action="store_true", help="APRE davvero (richiede --i-understand-live-risk)")

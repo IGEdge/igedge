@@ -68,10 +68,14 @@ backtest: lì non esistono risultati, solo prior.**
 | ~~C1~~ | ~~MR Ensemble US500~~ | ✅ **SUPERATO** (14 lug) → adottato, EDGE #1 §5b — ⚠️ capital-gated (serve ~€2.5k+) | — | fatto |
 | ~~C2~~ | ~~Term structure VIX~~ | 🟨 **TESTATO** (14 lug): bocciato da solo, adottato in combo con C5 — EDGE #2 §4c | — | fatto |
 | ~~C5~~ | ~~Timing put-spread~~ | ✅ **SUPERATO** (14 lug) → adottato: ingresso postspike+TS — EDGE #2 §4c | — | fatto |
-| C4 | Pre-FOMC drift | long 24h prima dell'annuncio Fed (~8/anno) — ⚠️ capital-gated (CFD min €7.5k) | ⭐⭐ | gated |
+| ~~C4~~ | ~~Pre-FOMC drift~~ | ❌ **FALSIFICATO** (15 lug): effetto morto post-2015 (t=0.85) | — | morto |
 | C3 | Dip-buy altri indici | transfer su US100/DAX/FTSE/JP225 — ⚠️ capital-gated (min size CFD) | ⭐⭐⭐ | gated |
 | C6 | TSMOM multi-asset | trend following su ~16 forward IG — ⚠️ verificare min size (probabile gated) | ⭐⭐⭐⭐ | gated |
 | C7 | Carry FX | SOLO gate di misura tom-next (log 2 settimane) | ⭐ | parallelo |
+| ~~C8~~ | ~~Uscite gestite~~ | 🟨 **TESTATO** (15 lug): put ❌ (hold-to-expiry resta legge) · call ✅ regola 60%-ampiezza ADOTTATA (EDGE-3 §2) | — | fatto |
+| ~~C9~~ | ~~Timing pre-FOMC~~ | ❌ **FALSIFICATO** (15 lug): −0.1%/trade e meno frequenza | — | morto |
+| **C10** | Ladder call | 2 posizioni sfalsate di 2 settimane (~22 ingressi/anno) | ⭐⭐ | 3° (da €2k) |
+| **C11** | Multi-indice opzioni | stessi edge su DAX/FTSE IG se lo smile è favorevole | ⭐⭐⭐ | settimana |
 
 ---
 
@@ -97,6 +101,8 @@ lezioni permanenti. Non ritestare senza un angolo genuinamente nuovo. Sintesi:
 |---|---|---|
 | [INDICE-EDGE.md](INDICE-EDGE.md) | questo indice | — |
 | [STATO-PROGETTO.md](STATO-PROGETTO.md) | **checkpoint 15 lug 2026**: cosa gira da solo + checklist ripresa ~5 ago | 📌 |
+| [OPTION-CHAIN-IG.md](OPTION-CHAIN-IG.md) | **COME si interroga la catena opzioni IG** senza farsi bloccare (metodo obbligatorio + checklist per ogni nuovo codice) | 📌 |
+| [PIANO-RISCRITTURA-BOT.md](PIANO-RISCRITTURA-BOT.md) | **quali strategie vanno nel bot e architettura modulare** (4 strati, interfaccia comune, to-do, invarianti di sicurezza) | 📌 |
 | [EDGE-1-compra-il-dip.md](EDGE-1-compra-il-dip.md) | edge #1 dip-buy CFD: regole, numeri, leva, comandi | ✅ |
 | [EDGE-2-vendi-put-lontane.md](EDGE-2-vendi-put-lontane.md) | edge #2 put-spread opzioni: doc vivo, gate, next steps | 🟡 |
 | [EDGE-candidati-da-testare.md](EDGE-candidati-da-testare.md) | 7 candidati DA backtestare, spec pre-registrate | ⬜ |

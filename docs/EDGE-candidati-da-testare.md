@@ -40,10 +40,100 @@ archivia, niente varianti di salvataggio → INDICE-EDGE.md "come testare").
 | C5 | Timing put-spread post-panico | ⭐⭐ | ✅ in casa | minimo | variante dello script esistente |
 | C6 | TSMOM multi-asset su forward IG | ⭐⭐⭐⭐ | pipeline nuova | ALTO | il fenomeno più documentato in assoluto; la vera diversificazione |
 | C7 | FX carry — gate di misura | ⭐ | log 2 settimane | quasi zero | misurare prima di backtestare |
+| **C8** | **Uscite gestite ("incassa i vincitori")** | ⭐⭐⭐ | ✅ in casa | basso | migliora ENTRAMBI gli edge opzioni adottati + ricicla capitale |
+| **C9** | **Pre-FOMC come timing della call mensile** | ⭐⭐ | date FOMC | minimo | uso a capitale-zero del C4: stesso trade, momento migliore |
+| **C10** | **Ladder bisettimanale della call** | ⭐⭐ | ✅ in casa | basso | ~22 ingressi/anno invece di 11, entrata spalmata |
+| **C11** | **Edge opzioni su DAX/FTSE IG (multi-indice)** | ⭐⭐⭐ | smile live + daily esterni | medio | moltiplica le occasioni ×2-3 (skew universale?) |
 
-Quick-win prima (C1-C5, giorni), progetto grande dopo (C6, settimane).
+Quick-win prima (C8/C9/C10, giorni — migliorano il programma che va al pilot),
+C11 progetto della settimana, C6 progetto grande. C3/C4-CFD/C6 capital-gated.
 
 ---
+
+## C8 — Uscite gestite: "incassa i vincitori prima" (per gli edge #2 e #3)
+
+**STATO: 🟨 TESTATO 15 lug 2026 — verdetto SPACCATO (script
+`managed_exit_us500.py`, smile reale, spread d'uscita pieno ×1.5/×2 in stress):**
+- **PUT-SPREAD (#2): ❌ FALSIFICATO.** Tutte le soglie peggiorano la baseline
+  (+2.7% t=31 → +0.6/+1.2%; nel 2007- diventa ≈0). Il credito è sottile (~10pt)
+  e lo spread d'uscita se ne mangia il 15%+; il riciclo aggiunge trade peggiori.
+  Stessa lezione del condor: **hold-to-expiry resta la regola**.
+- **CALL SPREAD (#3): ✅ MIGLIORA — regola adottabile: "chiudi quando lo spread
+  vale ≥60% dell'ampiezza (≈2× il debito)".** A parità di sizing (12%):
+  full 2007- CAGR +21.3→**+25.0%**, maxDD 71→**50%**, t 2.6→3.2, WR 51→57%;
+  OOS 2017- CAGR +32.3→+37.3/+43.1, maxDD 47→38/41. Coerente e monotono
+  (2×>3×, 60%>80% — non un picco). Senso economico: vicino al massimo lo spread
+  ha tutto da perdere e poco da guadagnare; l'uscita ricicla il capitale
+  (~+1 ciclo/anno). ⚠️ Gate prima di fidarsi al 100%: i valori MID-LIFE sono da
+  modello — da validare con quote reali (il pilot li logga; opzionale: mark
+  giornaliero delle strutture nel job del Pi). Il worst −100% resta (il
+  take-profit non elimina la coda).
+
+**Tesi.** Oggi hold-to-expiry sempre. La letteratura sui credit spread documenta
+che chiudere il vincitore in anticipo (classico "manage at 50%") migliora il
+rendimento aggiustato per rischio: eviti il give-back delle ultime settimane e
+**liberi capitale per rientrare prima** → più trade/anno → compounding.
+⚠️ Contro-forza nota dai nostri test: la chiusura anticipata PAGA lo spread
+d'uscita (hold-to-expiry no) — il condor moriva proprio di round-trip. Il test
+decide chi vince tra premio riciclato e spread pagato.
+
+**Regole esatte da testare (path giornaliero, pricing smile reale, spread
+d'uscita PIENO):**
+- Put-spread (#2): chiudi quando il valore del residuo ≤ {50%, 25%, 10%} del
+  credito incassato; rientra alla prossima occasione di segnale.
+- Call spread (#3): chiudi quando vale ≥ {2×, 3×} il debito o ≥ {60%, 80%}
+  dell'ampiezza; rientra al ciclo successivo (o subito se uptrend).
+**Kill:** se nessuna soglia batte l'hold-to-expiry su CAGR E maxDD (netto
+spread d'uscita) su ENTRAMBE le finestre (2009- e 2007-) → resta hold-to-expiry.
+**Trappola:** non spazzolare mille soglie — solo quelle elencate (letteratura).
+
+## C9 — Pre-FOMC come TIMING d'ingresso della call mensile
+
+**STATO: ❌ FALSIFICATO (15 lug 2026, `fomc_timing_us500.py`, 154 annunci
+2007-2026).** Passo 1: l'effetto era fortissimo pre-2015 (+0.55%/evento, t=2.9 —
+conferma Lucca-Moench) ma è **decaduto dopo la pubblicazione**: post-2015
++0.10%/evento (t=0.85) vs +0.05% dei giorni normali → indistinguibile. Passo 2:
+call ancorata a T−1 FOMC = **−0.1%/trade** E frequenza ridotta (6 vs 9
+cicli/anno) → kill su entrambi i criteri pre-registrati. **Questo falsifica
+anche C4** (la versione CFD usava lo stesso effetto): il passo 1 ERA il suo
+test. Entrambi archiviati.
+
+**Tesi.** Il drift pre-FOMC (Lucca-Moench) in versione CFD è capital-gated (C4),
+ma come SCELTA DEL GIORNO d'apertura della call mensile costa zero: 8 riunioni
+Fed/anno ≈ ~1 per ciclo mensile → "apri la call spread il giorno prima della
+Fed" invece di un giorno qualsiasi.
+**Test in 2 passi:** (1) effetto grezzo: ritorno close T−1 → close T (giorno
+annuncio) sui nostri daily 2007-2026, split pre/post-2015 (pubblicazione), vs
+giorni normali; (2) se vivo: backtest call mensile con entry ancorata a T−1
+FOMC vs entry calendario. **Kill:** effetto post-2015 ≤0 → morto (resta C4
+archiviato); miglioria call < +0.3%/trade → non vale la complicazione.
+
+## C10 — Ladder bisettimanale della call mensile
+
+**STATO: ⬜ DA BACKTESTARE** (spec pre-registrata 15 lug 2026, nessun test)
+
+**Tesi.** 2 posizioni sfalsate di ~2 settimane (metà size ciascuna) invece di
+1 mensile: ~22 ingressi/anno, entrata "spalmata" → meno varianza da timing,
+stesso rischio totale. **Test:** stessa logica di postpanic_call ma due cicli
+sfalsati; confronto CAGR/maxDD/worst a parità di rischio totale. **Kill:** se
+non riduce maxDD/varianza a parità di CAGR → resta il singolo mensile (più
+semplice = meglio). ⚠️ Richiede min 2 contratti → operativo da ~€2.000.
+
+## C11 — Gli stessi edge su opzioni DAX / FTSE di IG (multi-indice)
+
+**STATO: ⬜ DA BACKTESTARE** (spec pre-registrata 15 lug 2026, nessun test)
+
+**Tesi.** Skew delle put ricco e call a sconto sono fenomeni universali sugli
+indici azionari: se IG prezza DAX/FTSE come l'US500, ogni edge si moltiplica
+×2-3 in occasioni (obiettivo compounding). ⚠️ I panici sono correlati
+globalmente: più premio per episodio, NON vera diversificazione della coda —
+cap sul rischio totale per episodio.
+**Test in 3 passi:** (1) le catene mensili DAX/FTSE esistono su IG? (lettura
+read-only ~15 chiamate throttlate, scoprire epic/scadenze); (2) misurare lo
+smile reale (stesso metodo del sampler US500) — se ATM ≥0.9×vol-index o put
+slope piatta → morto lì; (3) solo se smile favorevole: backtest con daily
+esterni (DAX/FTSE da Stooq, VDAX da fonte pubblica; VFTSE difficile → in caso
+proxy da VSTOXX, dichiarato). **Kill per mercato**, senza appello.
 
 ## C1 — MR Ensemble daily US500 (più trigger della famiglia validata + lato short)
 

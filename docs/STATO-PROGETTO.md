@@ -30,6 +30,11 @@ container **igedge-sampler** attivo — ogni giorno di borsa alle **16:30** fa:
 → call spread spostato da 7600/8000 (rischio €107) a 7800/8200 (rischio €32),
 **operando comunque** (mai blocchi — principio fondante).
 
+**📱 CONTROLLO REMOTO (per la vacanza): https://igedge.antoniotrento.net**
+— pagina read-only via Cloudflare Tunnel (route nel config del Pi, porta 8890
+locale): verdetto del gate, ultimi campioni, log, download CSV. Dice da sola
+"🎯 GATE CHIUDIBILE" quando i campioni bastano.
+
 **Campioni skew finora: 3** — atm_ratio 0.775/0.788/0.797 (modello: 0.77),
 put_slope 0.30-0.33 (modello: 0.30) → **il modello regge**.
 
@@ -39,11 +44,14 @@ put_slope 0.30-0.33 (modello: 0.30) → **il modello regge**.
 
 | Edge | Stato | Numeri chiave | Cosa manca |
 |---|---|---|---|
-| **#2 vendi put post-panico** | 🟡 validato | ~4/anno, +2.7%/trade, 1 perdita in 59 (2009-26) | gate skew + pilot |
-| **#3 compra call in uptrend** | 🟨 backtest forte | ~11/anno, t=+3.0, €110/anno su €1k | stesso gate + pilot |
+| **#2 vendi put post-panico** | 🟡 validato | ~4/anno, +2.7%/trade, 1 perdita in 59 (2009-26). **Hold-to-expiry SEMPRE** (C8-put lo ha ri-confermato) | gate skew + pilot |
+| **#3 compra call in uptrend** | 🟨 backtest forte | ~11/anno, t=+3.0, €110/anno su €1k. **+ regola uscita C8: chiudi a ≥60% ampiezza (≈2× debito)** → CAGR +21→25%, maxDD 71→50% | stesso gate + pilot (che valida anche i mark mid-life) |
 | **#1 dip-buy + ensemble C1** | ✅ validato | +27%/anno a 3x, maxDD 30% | ⚠️ capital-gated: serve ≥€2.5k |
-| Guardia soft | ✅ attiva | modula, mai blocca | calibrare soglie (v1 non calibrate) |
+| Guardia soft | ✅ attiva e COLLEGATA allo scanner vero | modula, mai blocca | calibrare soglie (v1 non calibrate) |
 | Copertura reattiva | ❌ falsificata (15 lug) | +2.7%→≈0 in tutte le varianti | (angolo intraday = solo col pilot) |
+| Uscite gestite PUT (C8-put) | ❌ falsificata (15 lug) | il round-trip mangia il credito sottile | hold-to-expiry è legge |
+| Pre-FOMC (C4 + C9) | ❌ falsificati (15 lug) | effetto morto post-2015 (t=0.85) | non ritestare |
+| Pipeline residua | ⬜ | **C11** smile DAX/FTSE (prossimo, read-only) · C10 ladder (da €2k) · C3/C6 gated · C7 log | — |
 
 Falsificati e chiusi: iron condor, tail-hedge, 13 idee CFD — lista in EDGE-falsificati.md.
 
@@ -58,6 +66,9 @@ Falsificati e chiusi: iron condor, tail-hedge, 13 idee CFD — lista in EDGE-fal
      `python scripts/run_spread.py --strat <...> --live --arm --i-understand-live-risk`
      — solo con autorizzazione esplicita di Antonio. È **la prova vera**:
      fill/spread/settlement reali vs modello. Nessun edge è "provato" prima.
+     Il pilot deve validare anche: (a) i **valori mid-life** (per la regola
+     d'uscita 60% della call — nel backtest sono da modello), (b) come IG
+     **margina gli spread** (netting per struttura o per gamba — mai verificato).
    - Se atm_ratio medio > 0.82 → rifare i conti dei backtest coi rapporti medi
      veri prima di ogni pilot.
 3. **Controllare che il demone abbia girato davvero** ogni giorno:

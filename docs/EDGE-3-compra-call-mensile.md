@@ -32,7 +32,13 @@ o in calo. Vince perché i mesi buoni pagano 2-5× il premio.
   - **se** `close > SMA200` (uptrend): compra **call spread ATM / +1σ**
     (o call secca ATM — stessi numeri) sulla mensile US500;
   - **se** sotto SMA200: **fermo** (niente trade quel mese).
-- Tieni a scadenza (cash-settled). Rischio massimo = premio pagato.
+- **USCITA (regola C8, adottata 15 lug 2026): chiudi in anticipo quando lo
+  spread vale ≥60% dell'ampiezza (≈2× il debito pagato)** e rientra al ciclo
+  successivo se l'uptrend regge; altrimenti tieni a scadenza (cash-settled).
+  Migliora CAGR (+21→+25% full, +32→+37/43% OOS a parità di sizing), taglia il
+  maxDD (71→50%) e alza il WR (51→57%). ⚠️ Regola da CONFERMARE sui prezzi veri
+  durante il pilot (i valori mid-life del backtest sono da modello).
+- Rischio massimo = premio pagato.
 - 1 contratto ogni ~€1.000 di equity.
 - Script: `scripts/postpanic_call_us500.py --spike-min 0 --cool 99 --no-ts
   --uptrend --from 2007-01-01`

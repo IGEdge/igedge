@@ -60,6 +60,21 @@ della tempesta, a prezzo giusto) + sizing 1 contratto/€1000 (perdita massima
 angolo futuro NON testato: trigger INTRADAY (reagire prima che l'IV esploda) —
 richiede dati intraday di opzioni che non abbiamo; da valutare solo col pilot.
 
+### ❌ Uscite gestite sul PUT-spread (C8-put, 15 lug 2026)
+`managed_exit_us500.py`. Chiudere il vincitore in anticipo (residuo ≤50/25/10%
+del credito) PEGGIORA sempre la baseline hold-to-expiry (+2.7%→+0.6/+1.2%; ≈0
+nella finestra col 2008): il credito è sottile (~10pt) e lo spread d'uscita ne
+mangia il 15%+; il riciclo aggiunge trade peggiori. **Terza conferma della
+lezione round-trip: sul lato VENDITA, hold-to-expiry è legge.** (Sul lato
+COMPRA invece la regola 60%-ampiezza MIGLIORA — adottata in EDGE-3.)
+
+### ❌ Pre-FOMC drift (C4 + C9, 15 lug 2026)
+`fomc_timing_us500.py`, 154 annunci programmati 2007-2026. Effetto reale
+pre-2015 (+0.55%/evento, t=2.9, Lucca-Moench confermato) ma **morto dopo la
+pubblicazione**: post-2015 +0.10% (t=0.85) ≈ giorni normali (+0.05%). Come
+overlay di timing della call mensile: −0.1%/trade e frequenza ridotta. Caso da
+manuale di edge accademico arbitraggiato via. Non ritestare.
+
 ### ❌ Varianti e hedge bocciati (13-14 lug 2026)
 - **Bull-put sui dip come copertura del condor** (`bull_put_dip_us500.py`,
   [STORIA-copertura-put-sui-dip.md](STORIA-copertura-put-sui-dip.md)): short-put = stesso
