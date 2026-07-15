@@ -58,3 +58,37 @@ services:
       timeout: 10s
       retries: 3
       start_period: 1m
+
+  # ------------------------------------------------------------------
+  # Mini interfaccia web READ-ONLY (per controllare/scaricare da fuori
+  # via Cloudflare Tunnel quando non c'è SSH — es. vacanza).
+  # Pubblicata SOLO su 127.0.0.1 del Pi: da fuori si passa dal tunnel.
+  # ------------------------------------------------------------------
+  web:
+    build:
+      context: ../..
+      dockerfile: Dockerfile
+    image: igedge:latest
+    container_name: igedge-sampler-web
+    command: ["python", "scripts/sampler_web.py"]
+    restart: unless-stopped
+    environment:
+      - TZ=Europe/Rome
+      - WEB_PORT=8890
+    ports:
+      - "127.0.0.1:8890:8890"
+    volumes:
+      - ../../data:/app/data:ro       # sola lettura: la web non scrive nulla
+      - ../../logs:/app/logs:ro
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "5m"
+        max-file: "2"
+    healthcheck:
+      test: ["CMD", "python", "-c",
+             "import urllib.request,sys; urllib.request.urlopen('http://localhost:8890/salute', timeout=5); sys.exit(0)"]
+      interval: 2m
+      timeout: 10s
+      retries: 3
+      start_period: 30s

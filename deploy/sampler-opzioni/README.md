@@ -64,6 +64,31 @@ python scripts/sample_skew_us500.py --report
 **⚠️ Da quando il Pi è attivo, NON lanciare più il sampler dal PC**: il Pi è la
 fonte unica di `skew_samples.csv` (il pull sovrascrive la copia locale).
 
+## 3b. Controllo DA FUORI (vacanza) — mini web via Cloudflare Tunnel
+
+Il servizio `web` del compose espone su **127.0.0.1:8890 del Pi** una pagina
+**read-only** (nessuna azione possibile, nessun segreto): verdetto del gate,
+ultimi campioni, log, e download di `skew_samples.csv` + `sampler.log`.
+
+Per raggiungerla dal tunnel Cloudflare già attivo, aggiungi una route nel tuo
+`config.yml` di cloudflared (PRIMA della regola catch-all `http_status:404`):
+
+```yaml
+  - hostname: igedge.antoniotrento.net     # scegli il sottodominio
+    service: http://localhost:8890
+```
+
+poi `sudo systemctl restart cloudflared` (o come riavvii il tuo tunnel) e crea
+il record DNS del sottodominio nel pannello Cloudflare (Tunnel → Public
+Hostname lo fa da solo se lo aggiungi da lì).
+
+**⚠️ Consigliato**: proteggila con **Cloudflare Access** come già fai per la
+dashboard (Zero Trust → Applications → stessa policy). La pagina non contiene
+credenziali, ma è comunque roba tua.
+
+Dal telefono in vacanza: apri `https://igedge.antoniotrento.net` → vedi il gate;
+i file si scaricano coi due bottoni (o `curl -O .../skew_samples.csv`).
+
 ## 4. Fermare / aggiornare
 
 ```bash
