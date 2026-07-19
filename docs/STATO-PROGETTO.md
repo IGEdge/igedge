@@ -57,6 +57,23 @@ Falsificati e chiusi: iron condor, tail-hedge, 13 idee CFD — lista in EDGE-fal
 
 ---
 
+## ⚠️ AZIONE PENDENTE — SYNC DEL PI (rimandata APPOSTA, decisione 19 lug)
+
+Il Pi gira col codice del 15 lug: Antonio ha scelto di NON syncare a metà
+campagna gate (per non disturbare la raccolta campioni in corso). **Il sync va
+fatto alla ripresa (o comunque PRIMA del pilot)** e porta su in un colpo:
+- **C12**: misura back-month del sampler (la diagonale resta NON misurabile
+  finché il Pi non è aggiornato) + guardie anti-quote-spazzatura
+- Gate margine (#7) nel controllo segnali giornaliero
+- Fix bot CFD: #3 #4 #5 #8 #10 #12 (arm/plan-only, scale-in, RTH, sessione)
+
+```bash
+# dal PC:  scp -r scripts src antonio@raspberrypi:Documents/igedge/
+# sul Pi:  cd ~/Documents/igedge/deploy/sampler-opzioni && docker compose up -d --build
+```
+(Il giro giornaliero attuale resta valido: sampler front + segnali plan-only
+funzionano col codice vecchio — perde solo le novità sopra.)
+
 ## ✅ CHECKLIST ALLA RIPRESA (~5 agosto 2026)
 
 1. **Dal PC:** `deploy\sampler-opzioni\pull-data.bat` → scarica campioni + log

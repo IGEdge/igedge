@@ -121,7 +121,17 @@ semplice = meglio). ⚠️ Richiede min 2 contratti → operativo da ~€2.000.
 
 ## C12 — Diagonale: ala di copertura a scadenza LUNGA (proposta Antonio, 19 lug)
 
-**STATO: ⬜ GATE DI MISURA PRIMA DI TUTTO** (spec pre-registrata 19 lug 2026)
+**STATO: 🔬 GATE DI MISURA ATTIVO (19 lug 2026)** — sampler ESTESO: ogni giorno,
+dopo lo smile del mese vicino, campiona anche la scadenza a ~90 DTE (ATM + put
+1/1.5/2σ, ~8 chiamate) → `data/research/skew_samples_back.csv` con
+`slope_ratio_vs_front` già calcolato; il `--report` stampa il verdetto C12.
+⚠️ Con **guardie di plausibilità**: primo tentativo (domenica, fuori orario) le
+quote back-month erano SPAZZATURA (ATM invertita a IV 2%, put sotto l'ATM) —
+scartate senza salvare. Le misure vere arrivano dal Pi nei giorni di borsa,
+**MA il Pi ha il codice vecchio: misura C12 SOSPESA finché non si fa il sync**
+(rimandato apposta da Antonio per non disturbare la campagna gate in corso —
+vedi STATO-PROGETTO.md §azione pendente). Kill invariato: media slope
+back/front ≥ 0.8 → archiviare.
 
 **Tesi (di Antonio).** Nell'EDGE #2 l'ala protettiva si compra e butta ogni mese:
 un'ala a 2-3+ mesi tenuta ferma, con le short mensili vendute contro
