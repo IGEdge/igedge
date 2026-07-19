@@ -2,8 +2,10 @@
 
 > Scritto il 15 lug 2026 su richiesta di Antonio, PRIMA della riscrittura, così
 > le decisioni non si perdono. Da leggere insieme a
-> [OPTION-CHAIN-IG.md](OPTION-CHAIN-IG.md) (metodo obbligatorio catena) e
-> [STATO-PROGETTO.md](STATO-PROGETTO.md).
+> [OPTION-CHAIN-IG.md](OPTION-CHAIN-IG.md) (metodo obbligatorio catena),
+> [STATO-PROGETTO.md](STATO-PROGETTO.md) e
+> [PIANO-ASTRAZIONE-BROKER.md](PIANO-ASTRAZIONE-BROKER.md) (motore multi-adapter:
+> IG / IBKR / tastytrade — lo “Strato 1” sotto non resta per sempre solo IG).
 
 ---
 

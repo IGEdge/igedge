@@ -45,6 +45,11 @@ class DipBuyStrategy:
         self.add_rsi = float(config.get("add_rsi", 5))
         self.scale_in = int(config.get("scale_in", 2))
         self.leverage = float(config.get("leverage", 3.0))
+        # applicati dal BOT LOOP (issue #4): flat overnight + time-exit
+        self.intraday = str(config.get("intraday", True)).lower() == "true" \
+            if isinstance(config.get("intraday", True), str) \
+            else bool(config.get("intraday", True))
+        self.max_hold_days = int(config.get("max_hold_days", 10))
 
     # ------------------------------------------------------------------
     def _indicators(self) -> Optional[Dict[str, float]]:

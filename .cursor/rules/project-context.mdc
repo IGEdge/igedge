@@ -1,0 +1,60 @@
+---
+description: Memoria IGEdge — validazione idea di business, stack IG, gate, evolutive
+alwaysApply: true
+---
+
+# IGEdge — memoria strutturale (Antonio)
+
+## 0. Obiettivo
+
+Validare l’**idea di business** di questo repo: edge già backtestati → conferma
+sul percorso reale IG → poi prodotto.  
+**IG** è il veicolo attuale, non il fine. Multi-broker (issue #2) **dopo** la
+validazione.
+
+Non confondere: smoke DEMO ≠ validazione strategie.  
+Validazione opzioni = LIVE (`IG_LIVE_*`, conto opzioni) + skew + plan-only →
+eventuale pilot armato solo con ok esplicito.
+
+## 1. Fondamento già fatto
+
+- Backtest lunghi: `data/research/` (US500 ~2007+, VIX da ~1990), stagionalità
+  1950–2024 in `src/guard/seasonality.py`, script `scripts/*_us500.py`.
+- Molte idee **falsificate**; poche candidate: dip-buy CFD, putspread,
+  callspread. Condor fuori.
+- Non trattare pochi giorni di `skew_samples.csv` come unico evidenza.
+
+## 2. Fase corrente (evidenze consistenti)
+
+1. Sampler (Pi, ~16:30): CBOE VIX/VIX3M → skew IG LIVE (~14 get_market) →
+   `skew_samples.csv` → `run_spread --strat both --live` **plan-only**.
+2. Gate: medie smile vs modello backtest (ATM ~0.77, put ~0.30; call_slope
+   già tensionato nei primi campioni). Servono più giorni / VIX variati.
+3. Produzione ordini: solo `--arm --i-understand-live-risk` + autorizzazione.
+4. Fonte skew di produzione = Pi (pull/sito); copia locale PC può essere
+   indietro.
+
+## 3. Connessioni
+
+| Path | Env | Uso |
+|------|-----|-----|
+| CFD / bot | `IG_*` | dip-buy, test demo/live CFD |
+| Opzioni validazione | `IG_LIVE_*` | skew, plan-only, futuro pilot |
+
+Sessione persistente + throttle 2.5s sul path opzioni. Conti CFD e opzioni
+separati.
+
+## 4. Evolutive / doc da non ignorare
+
+`STATO-PROGETTO`, `INDICE-EDGE`, EDGE-1/2/3, falsificati, GUARDIA-SOFT,
+`PIANO-RISCRITTURA-BOT`, `ARCHITETTURA-BOT`, `PIANO-ASTRAZIONE-BROKER` (#2),
+`deploy/sampler-opzioni/`, issuebeam (`labels --apply` incluso).
+
+## 5. Regole agente
+
+- Lavorare sui mattoni esistenti; non rompere ciò che già regge.
+- Evidenze = codice + run + log + CSV, non pitch.
+- Guadagni “precisi” solo come numeri da backtest etichettati tali, mai come
+  certo finché gate/pilot non chiudono.
+- Aggiornare questa memoria solo su richiesta esplicita di Antonio.
+- Contesto di lavoro = solo IGEdge (trading / validazione / codice).

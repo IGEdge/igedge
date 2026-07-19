@@ -5,6 +5,11 @@ aggiungerne), con esecuzione IG, gestione rischio, e **zero perdita di
 tracciamento delle posizioni**. Riprende la filosofia di cryptoquantix
 (registry, reconcile, kill switch) adattata a IG CFD.
 
+> **Evoluzione multi-broker:** oggi l’esecuzione è accoppiata a IG. Il piano per
+> astrarre il cuore e accettare **qualsiasi** broker conforme (adapter aperti;
+> IBKR/tastytrade come prime prove) è in
+> [PIANO-ASTRAZIONE-BROKER.md](PIANO-ASTRAZIONE-BROKER.md).
+
 ---
 
 ## 1. Modularità — aggiungere una strategia = 1 file

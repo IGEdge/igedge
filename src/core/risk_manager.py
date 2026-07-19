@@ -40,13 +40,18 @@ class RiskManager:
         return 0.0
 
     def size_for(self, price: float, leverage: float,
-                 min_size: float = 1.0, step: float = 1.0) -> float:
-        """Contratti per raggiungere notional = equity*leva, arrotondato allo
-        step (verso il basso, mai sovra-leva). >= min_size."""
+                 min_size: float = 1.0, step: float = 1.0,
+                 units: int = 1) -> float:
+        """Contratti di UNA unità. Il notional target (equity*leva) è SPALMATO
+        su `units` unità uguali (1 + scale_in — issue #8: come nel backtest,
+        unità uguali; MAI leva piena a ogni ADD). Arrotondato allo step verso
+        il basso (mai sovra-leva), >= min_size. NB: a equity piccola il floor
+        min_size può rendere l'unità più grande del target — è il cap di
+        esposizione lorda (can_open) a bloccare gli ADD in quel caso."""
         eq = self.equity()
         if eq <= 0 or price <= 0:
             return 0.0
-        raw = (eq * leverage) / (price * self.vpp)
+        raw = (eq * leverage) / (price * self.vpp * max(1, int(units)))
         n = math.floor(raw / step) * step
         return max(min_size, round(n, 4))
 

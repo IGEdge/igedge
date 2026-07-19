@@ -26,9 +26,15 @@ class OrderManager:
 
     def open(self, epic: str, direction: str, size: float, strategy: str,
              stop_distance: Optional[float] = None,
-             limit_distance: Optional[float] = None) -> Dict[str, Any]:
-        # idempotenza: una posizione per strategia+epic
-        if self.store.has_open(strategy, epic):
+             limit_distance: Optional[float] = None,
+             allow_stack: bool = False,
+             entry_ts: Optional[str] = None) -> Dict[str, Any]:
+        """allow_stack=True (scale-in ADD, issue #3): apre una NUOVA unità
+        distinta anche se la strategia ha già posizioni su questo epic.
+        Default False: ENTER resta anti-doppione (idempotenza).
+        entry_ts opzionale (issue #4): conserva l'inizio episodio nei rientri
+        intraday (passa allo store)."""
+        if not allow_stack and self.store.has_open(strategy, epic):
             logger.info(f"[Order] {strategy} ha già una posizione su {epic} — skip")
             return {"ok": False, "reason": "already_open"}
         if size <= 0:
@@ -47,7 +53,7 @@ class OrderManager:
             if status == "ACCEPTED":
                 deal_id, level = conf.get("dealId"), conf.get("level")
                 self.store.record_open(deal_id, epic, strategy, direction,
-                                       size, level)
+                                       size, level, entry_ts=entry_ts)
                 return {"ok": True, "deal_id": deal_id, "level": level,
                         "confirm": conf}
             # REJECTED = rifiuto logico -> NON ritentare

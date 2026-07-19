@@ -192,6 +192,13 @@ def main():
         lab = ("credito (incassi)" if strat == "putspread" else "guadagno max")
         print(f"  {lab} {plan['reward_pts']}pt   RISCHIO MAX {plan['risk_pts']}pt"
               f"  = ~€{plan['risk_eur']:.0f} totali (size {plan['size']})")
+        m = plan.get("margin") or {}
+        if m.get("balance") is not None:
+            print(f"  margine: impegno {m['total_after']:.0f} {m.get('currency','')}"
+                  f" (già aperto {m['committed']:.0f}) su conto {m['balance']:.0f}"
+                  f" — cap 50% = {m['cap']:.0f} ✓")
+        elif m.get("warning"):
+            print(f"  ⚠️ {m['warning']}")
         if armed:
             print(f"  ESITO: opened={plan.get('opened')}  store #{plan.get('store_id')}  "
                   f"stato {s.status}")

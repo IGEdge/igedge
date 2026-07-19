@@ -43,6 +43,9 @@ class SpreadConfig:
     eur_per_contract: float = 1000.0   # 1 contratto ogni €1000 di equity
     usd2eur: float = 0.93
     max_positions_per_strat: int = 1
+    # issue #7: impegno totale (posizioni aperte + nuovo trade) <= 50% del CONTO
+    # REALE letto da /accounts — non solo del capital_eur dichiarato da CLI
+    max_account_frac: float = 0.50
 
 
 class SpreadOrchestrator(Orchestrator):
@@ -78,6 +81,60 @@ class SpreadOrchestrator(Orchestrator):
             return {"ok": True, "reason": f"uptrend: spot {spot:.0f} > SMA200 {sma200:.0f}"}
         return {"ok": False, "reason": f"strat sconosciuta: {strat}"}
 
+    # ------------------------------------------------------ margine (#7)
+    def _margin_gate(self, new_risk_usd: float, strict: bool = False):
+        """Impegno totale (max-loss posizioni aperte + nuovo trade) vs conto
+        REALE da /accounts. Il rischio arriva in USD (opzioni $1/pt) e viene
+        CONVERTITO nella valuta del conto (verificato sul reale 19 lug 2026:
+        TVYYM è in EUR anche se le opzioni quotano USD). Ritorna
+        (ok, reason, info). strict=True (percorso ARMATO): se il conto non è
+        leggibile → RIFIUTA (fail-closed); in plan-only → warning e avanti."""
+        c = self.scfg
+        try:
+            accounts = self.client.get_accounts()
+        except Exception as e:
+            accounts = None
+            err = str(e)
+        else:
+            err = None
+        bal = avail = ccy = None
+        for a in accounts or []:
+            if not getattr(self.client, "account_id", None) \
+                    or a.get("accountId") == self.client.account_id:
+                b = a.get("balance") or {}
+                bal = b.get("balance")
+                avail = b.get("available", bal)
+                ccy = a.get("currency")
+                break
+        if bal is None:
+            msg = f"conto non leggibile da /accounts ({err or 'nessun match'})"
+            if strict:
+                self.audit.error("margin_gate_REFUSE", reason=msg, strict=True)
+                return False, f"MARGINE: {msg} → rifiuto (armato)", {}
+            self.audit.warn("margin_gate_unknown", reason=msg)
+            return True, None, {"warning": f"margine non verificabile: {msg}"}
+        # USD → valuta del conto (usd2eur dichiarato in config; USD = 1:1)
+        fx = 1.0 if str(ccy).upper() == "USD" else c.usd2eur
+        new_risk = new_risk_usd * fx
+        committed = sum((getattr(p, "max_loss", 0) or 0)
+                        * (p.legs[0].size if p.legs else 0)
+                        for p in self.store.get_open()) * fx
+        total_after = committed + new_risk
+        info = {"balance": bal, "available": avail, "currency": ccy,
+                "committed": round(committed, 0),
+                "total_after": round(total_after, 0),
+                "cap": round(c.max_account_frac * bal, 0)}
+        if total_after > c.max_account_frac * bal:
+            self.audit.error("margin_gate_REFUSE", **info)
+            return False, (f"MARGINE: impegno {total_after:.0f} {ccy} > "
+                           f"{c.max_account_frac:.0%} del conto ({bal:.0f}) — skip"), info
+        if new_risk > (avail or bal):
+            self.audit.error("margin_gate_REFUSE_available", **info)
+            return False, (f"MARGINE: rischio {new_risk:.0f} {ccy} > fondi "
+                           f"disponibili ({avail:.0f}) — skip"), info
+        self.audit.info("margin_gate_ok", **info)
+        return True, None, info
+
     # -------------------------------------------------------- costruzione
     def _quote(self, code: str, strike: int, kind: str):
         epic = build_epic(code, strike, kind)
@@ -94,9 +151,11 @@ class SpreadOrchestrator(Orchestrator):
                     vix10max: Optional[float] = None,
                     ts_ratio: Optional[float] = None,
                     sma200: Optional[float] = None,
-                    guard: Optional[dict] = None) -> dict:
+                    guard: Optional[dict] = None,
+                    strict_margin: bool = False) -> dict:
         """guard (opzionale) = decisione della GUARDIA SOFT (src/guard):
-        {'level', 'params': {...}, ...}. MODULA strike/size, NON blocca mai."""
+        {'level', 'params': {...}, ...}. MODULA strike/size, NON blocca mai.
+        strict_margin=True (percorso ARMATO): conto non leggibile → rifiuto."""
         c = self.scfg
         g_ps = (guard or {}).get("params", {}).get("putspread", {})
         g_cs = (guard or {}).get("params", {}).get("callspread", {})
@@ -172,6 +231,15 @@ class SpreadOrchestrator(Orchestrator):
         size = max(1, int((c.capital_eur // c.eur_per_contract) * size_mult))
         risk_eur = risk_pts * c.usd2eur * size
 
+        # gate MARGINE (issue #7): impegno vs conto REALE, in valuta del conto
+        # ($1/pt → il rischio in punti È il rischio in USD sul conto opzioni)
+        new_risk_ccy = risk_pts * size
+        m_ok, m_reason, m_info = self._margin_gate(new_risk_ccy,
+                                                   strict=strict_margin)
+        if not m_ok:
+            return {"ok": False, "action": "skip", "reason": m_reason,
+                    "margin": m_info}
+
         legs = [Leg(role=r, epic=q["epic"], direction=d, kind=k,
                     strike=q["strike"], size=size) for r, d, k, q in legs_meta]
         spread = Condor(underlying_epic=self.cfg.underlying_epic, expiry=expiry,
@@ -187,6 +255,7 @@ class SpreadOrchestrator(Orchestrator):
                 "risk_eur": round(risk_eur, 0),
                 "quotes": {r: {"bid": q["bid"], "offer": q["offer"],
                                "strike": q["strike"]} for r, _, _, q in legs_meta}}
+        plan["margin"] = m_info
         if guard:
             plan["guard"] = {"level": guard.get("level"),
                              "eff_score": guard.get("eff_score"),
@@ -200,7 +269,9 @@ class SpreadOrchestrator(Orchestrator):
     # ------------------------------------------------------------- run
     def run_spread(self, strat: str, armed: bool = False,
                    guard: Optional[dict] = None, **signals) -> dict:
-        plan = self.plan_spread(strat, guard=guard, **signals)
+        # armato → margine STRICT (conto non leggibile = rifiuto, fail-closed)
+        plan = self.plan_spread(strat, guard=guard, strict_margin=armed,
+                                **signals)
         if not plan.get("ok"):
             self.audit.info("spread_skip", strat=strat, reason=plan.get("reason"))
             return plan

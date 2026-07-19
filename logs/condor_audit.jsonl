@@ -251,3 +251,9 @@
 {"ts": "2026-07-14T19:49:37.499427+00:00", "action": "session_reused", "dry_run": true, "account": "TVYYM", "age_s": 49840}
 {"ts": "2026-07-14T19:49:43.896098+00:00", "action": "spread_skip", "dry_run": true, "strat": "putspread", "reason": "VIX 16.5 < 20: niente panico da vendere"}
 {"ts": "2026-07-14T19:49:56.332885+00:00", "action": "spread_plan", "dry_run": true, "strat": "callspread", "desc": "Condor AUG-26 spot=7576 vix=16.5 credit~-109.7 maxloss~109.7 | long_call[BUY CALL 7600 x1] short_call[SELL CALL 8000 x1]", "risk_pts": 109.7, "reward_pts": 290.3, "size": 1, "risk_eur": 102.0, "signal": "uptrend: spot 7576 > SMA200 6976"}
+{"ts": "2026-07-17T14:11:16.578161+00:00", "action": "session_expired", "dry_run": true, "note": "token non validi → un login"}
+{"ts": "2026-07-17T14:11:16.895767+00:00", "action": "session_new_login", "dry_run": true, "account": "TVYYM"}
+{"ts": "2026-07-17T14:11:23.638846+00:00", "action": "spread_skip", "dry_run": true, "strat": "putspread", "reason": "VIX 18.5 < 20: niente panico da vendere"}
+{"ts": "2026-07-17T14:11:36.131459+00:00", "action": "spread_plan", "dry_run": true, "strat": "callspread", "desc": "Condor AUG-26 spot=7515 vix=18.5 credit~-135.3 maxloss~135.3 | long_call[BUY CALL 7500 x1] short_call[SELL CALL 7950 x1]", "risk_pts": 135.3, "reward_pts": 314.7, "size": 1, "risk_eur": 126.0, "signal": "uptrend: spot 7515 > SMA200 6976", "guard": "NORMALE"}
+{"ts": "2026-07-19T07:36:58.750400+00:00", "action": "session_reused", "dry_run": true, "account": "TVYYM", "age_s": 882}
+{"ts": "2026-07-19T07:38:57.697613+00:00", "action": "session_reused", "dry_run": true, "account": "TVYYM", "age_s": 1001}

@@ -119,6 +119,46 @@ sfalsati; confronto CAGR/maxDD/worst a parità di rischio totale. **Kill:** se
 non riduce maxDD/varianza a parità di CAGR → resta il singolo mensile (più
 semplice = meglio). ⚠️ Richiede min 2 contratti → operativo da ~€2.000.
 
+## C12 — Diagonale: ala di copertura a scadenza LUNGA (proposta Antonio, 19 lug)
+
+**STATO: ⬜ GATE DI MISURA PRIMA DI TUTTO** (spec pre-registrata 19 lug 2026)
+
+**Tesi (di Antonio).** Nell'EDGE #2 l'ala protettiva si compra e butta ogni mese:
+un'ala a 2-3+ mesi tenuta ferma, con le short mensili vendute contro
+(= put DIAGONAL), potrebbe ammortizzare il costo → più rendimento.
+
+**Back-of-envelope (BS, smile modello, scenario post-panico VIX 20):** ⚠️ a
+prima analisi il risparmio è NEGATIVO (−18%: ala 3M $34 vs 3×$9.7=$29 di
+mensili) perché lo stesso strike (−14%) è 2.5σ nel tempo mensile ma solo
+**1.5σ nel tempo trimestrale** → più vicino in σ-spazio → più skew PAGATO (il
+premio che di solito incassiamo). Più: (a) **vega** — compriamo post-panico e
+la normalizzazione della vol toglie ~$9 all'ala lunga; (b) **deriva strike** —
+la protezione ferma si allontana se S sale (la mensile si resetta); (c) il
+programma è EPISODICO (~4 trade/anno a grappoli): tra episodi l'ala lunga
+sanguina theta senza premio incassato contro; (d) **margine**: il netting IG
+TRA scadenze diverse è ignoto (probabilmente NON netta → margine peggiore).
+
+**La porta aperta (perché non si boccia a tavolino):** il modello assume slope
+skew 0.30 UGUALE su tutte le scadenze; nella realtà lo skew tende ad
+APPIATTIRSI sui mesi lunghi, e **lo smile back-month su IG non è mai stato
+misurato**. Se molto più piatto → i conti si ribaltano.
+
+**Piano (3 passi, in ordine, ognuno può uccidere):**
+1. **GATE DI MISURA**: estendere `sample_skew_us500.py` per campionare UNA
+   scadenza lontana (+2/+3 mesi — i codici OTCSPX coprono anche DEC/MAR):
+   ~8-10 chiamate in più, anche una tantum. Confronto slope front vs back.
+   **Kill:** se slope back ≥ ~0.8× slope front → il risparmio non esiste
+   (conferma del back-of-envelope) → archiviare.
+2. Solo se slope back MOLTO più piatta: **backtest diagonale** (pricing back
+   con VIX3M + slope misurata; roll dell'ala; mark giornaliero; variante
+   "solo dentro l'episodio" — grappoli 2010/2020/2022 — vs ala ferma sempre).
+   **Kill:** non batte la verticale su CAGR E coda (2008/2020 incluse).
+3. Solo se il backtest passa: verifica MARGINE cross-expiry nel pilot.
+
+**Nota apparato:** il confronto onesto include SEMPRE i costi di roll dell'ala
+lunga e la coda: in un crash la diagonale può fare MEGLIO (vega dell'ala lunga)
+— va misurato, non assunto, in entrambe le direzioni.
+
 ## C11 — Gli stessi edge su opzioni DAX / FTSE di IG (multi-indice)
 
 **STATO: ⬜ DA BACKTESTARE** (spec pre-registrata 15 lug 2026, nessun test)

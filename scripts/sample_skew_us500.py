@@ -40,9 +40,11 @@ from src.options.session import PersistentIGSession
 from src.options.throttle import ThrottledClient
 
 CSV_PATH = "data/research/skew_samples.csv"
+CSV_BACK = "data/research/skew_samples_back.csv"   # C12: scadenza LONTANA (+2/+3 mesi)
 # punti dello smile campionati, in unità di σ (distanza dallo spot)
 PUT_SIGMAS = [0.5, 1.0, 1.5, 2.0, 2.5, 3.0]
 CALL_SIGMAS = [0.5, 1.0, 1.5, 2.0]
+BACK_PUT_SIGMAS = [1.0, 1.5, 2.0]                  # bastano per la pendenza
 
 
 def fetch_vix_cboe():
@@ -146,6 +148,10 @@ def sample(throttle=2.5):
     k_atm, mid_atm, iv_atm = iv_at(0.0, "PUT")
     if iv_atm is None:
         k_atm, mid_atm, iv_atm = iv_at(0.0, "CALL")
+    if iv_atm is None:
+        # mercato chiuso / niente quote: NON salvare una riga vuota nel gate
+        print("❌ nessuna quota ATM (mercato chiuso?) — campione NON salvato")
+        return 1
     row["iv_atm"] = round(iv_atm, 4) if iv_atm else None
     print(f"  ATM {k_atm:.0f}: IV {iv_atm*100:.1f}%  ratio {iv_atm*100/vix:.2f}"
           if iv_atm else f"  ATM {k_atm:.0f}: n/d")
@@ -197,7 +203,102 @@ def sample(throttle=2.5):
             w.writeheader()
         w.writerow({c: row.get(c) for c in cols})
     print(f"  → campione salvato in {CSV_PATH}")
+
+    # ── C12 (additivo, MAI blocca il gate principale): smile del mese LONTANO
+    try:
+        sample_back_month(orch, client, spot, vix, put_slope)
+    except Exception as e:
+        print(f"  (back-month C12 saltato: {e})")
     return 0
+
+
+def sample_back_month(orch, client, spot, vix, front_slope):
+    """C12: misura la pendenza skew di una scadenza +2/+3 mesi (~8 chiamate).
+    Se lo skew lontano NON è molto più piatto del vicino, la diagonale non
+    conviene (kill pre-registrato: slope_back >= 0.8 × slope_front)."""
+    from datetime import datetime as _dt, timezone as _tz
+    today = _dt.now(_tz.utc).date()
+    best = None
+    for exp_str, d in upcoming_standard_expiries():
+        dte = (d - today).days
+        if 55 <= dte <= 130 and (best is None or abs(dte - 90) < abs(best[1] - 90)):
+            best = (exp_str, dte)
+    if best is None:
+        print("  [C12] nessuna scadenza lontana in [55,130] DTE")
+        return
+    b_exp, b_dte = best
+    b_code = orch._discover_code(b_exp)
+    if not b_code:
+        print(f"  [C12] codice non trovato per {b_exp}")
+        return
+    T = max(b_dte, 1) / 365.0
+    sigb = spot * (vix / 100.0) * math.sqrt(T)
+    print(f"  [C12] mese LONTANO {b_exp} (DTE {b_dte}, {b_code})  σ≈{sigb:.0f}pt")
+
+    def iv_b(n):
+        k = round_strike(spot - n * sigb, 50)
+        m = client.get_market(build_epic(b_code, int(k), "PUT"))
+        s = (m or {}).get("snapshot", {}) or {}
+        b_, o_ = s.get("bid"), s.get("offer")
+        if b_ is None or o_ is None:
+            return k, None
+        from src.options.orchestrator import _implied_vol as _iv
+        return k, _iv((b_ + o_) / 2.0, spot, k, T, "PUT")
+
+    k0, iv_atm_b = iv_b(0.0)
+    if iv_atm_b is None:
+        print("  [C12] niente quota ATM lontana — salto")
+        return
+    # SANITÀ (19 lug: fuori orario le quote back-month sono spazzatura — IV
+    # invertite assurde): l'ATM lontana deve essere plausibile, e le put OTM
+    # devono stare SOPRA l'ATM (skew) — altrimenti NON si salva niente.
+    if not (0.05 <= iv_atm_b <= 1.0):
+        print(f"  [C12] ATM lontana IMPLAUSIBILE (IV {iv_atm_b*100:.1f}%) — "
+              f"quote fuori orario? salto senza salvare")
+        return
+    atm_rb = iv_atm_b / vix * 100
+    pts, ivs = [], {}
+    for n in BACK_PUT_SIGMAS:
+        k, iv = iv_b(n)
+        if iv and iv >= iv_atm_b:            # lo skew ALZA le put OTM, mai sotto ATM
+            ivs[n] = iv
+            pts.append((n, iv / vix * 100 - atm_rb))
+            print(f"  [C12]  PUT {n:.1f}σ  {k:.0f}: IV {iv*100:.1f}%  ratio {iv*100/vix:.2f}")
+        elif iv:
+            print(f"  [C12]  PUT {n:.1f}σ  {k:.0f}: IV {iv*100:.1f}% SOTTO l'ATM "
+                  f"({iv_atm_b*100:.1f}%) — quota implausibile, scartata")
+    if len(pts) < 2:
+        print("  [C12] meno di 2 punti plausibili — salto senza salvare")
+        return
+    slope_b = fit_slope(pts)
+    verdict = ""
+    if slope_b is not None and front_slope:
+        ratio = slope_b / front_slope
+        verdict = (f"slope back/front = {ratio:.2f} → "
+                   + ("💀 KILL C12 (≥0.8: nessun risparmio)" if ratio >= 0.8
+                      else "🔎 interessante (<0.8): la diagonale merita il backtest"))
+        print(f"  [C12] atm_ratio_back {atm_rb/100:.3f}  put_slope_back "
+              f"{slope_b:.3f} (front {front_slope:.3f})  {verdict}")
+    cols = ["ts", "expiry", "dte", "spot", "vix", "iv_atm_back",
+            "iv_put_1.0", "iv_put_1.5", "iv_put_2.0",
+            "atm_ratio_back", "put_slope_back", "slope_ratio_vs_front"]
+    row = {"ts": datetime.now(timezone.utc).isoformat(timespec="seconds"),
+           "expiry": b_exp, "dte": b_dte, "spot": round(spot, 1),
+           "vix": round(vix, 2), "iv_atm_back": round(iv_atm_b, 4),
+           "iv_put_1.0": round(ivs.get(1.0, 0), 4) or None,
+           "iv_put_1.5": round(ivs.get(1.5, 0), 4) or None,
+           "iv_put_2.0": round(ivs.get(2.0, 0), 4) or None,
+           "atm_ratio_back": round(atm_rb / 100, 3),
+           "put_slope_back": round(slope_b, 3) if slope_b is not None else None,
+           "slope_ratio_vs_front": round(slope_b / front_slope, 3)
+           if (slope_b is not None and front_slope) else None}
+    new = not os.path.exists(CSV_BACK)
+    with open(CSV_BACK, "a", newline="", encoding="utf-8") as f:
+        w = csv.DictWriter(f, fieldnames=cols)
+        if new:
+            w.writeheader()
+        w.writerow(row)
+    print(f"  [C12] → salvato in {CSV_BACK}")
 
 
 def report():
@@ -215,6 +316,16 @@ def report():
                   f"   (backtest: {ref})  {'✅ regge' if abs(s.mean()-ref) < 0.08 else '⚠️ DEVIA — rifare i conti'}")
     print("\nGATE (docs/EDGE-2-vendi-put-lontane.md §7): servono ~10-20 campioni su "
           "più livelli di VIX prima di giudicare.")
+    if os.path.exists(CSV_BACK):
+        db = pd.read_csv(CSV_BACK)
+        s = db["slope_ratio_vs_front"].dropna()
+        if len(s):
+            m = s.mean()
+            print(f"\nC12 (diagonale) — pendenza skew LONTANA/vicina: media {m:.2f} "
+                  f"su {len(s)} campioni → "
+                  + ("💀 KILL C12: skew lontano NON abbastanza piatto (≥0.8), "
+                     "nessun risparmio sull'ala lunga" if m >= 0.8 else
+                     "🔎 <0.8: la diagonale merita il backtest (passo 2 della spec)"))
     return 0
 
 

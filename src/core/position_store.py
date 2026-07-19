@@ -63,12 +63,16 @@ class PositionStore:
 
     def record_open(self, deal_id: str, epic: str, strategy: str,
                     direction: str, size: float,
-                    entry_level: Optional[float] = None) -> int:
+                    entry_level: Optional[float] = None,
+                    entry_ts: Optional[str] = None) -> int:
+        """entry_ts opzionale (issue #4): la RIENTRATA mattutina di un episodio
+        intraday conserva il timestamp d'inizio episodio, così il time-exit
+        (DIP_MAX_HOLD_DAYS) conta i giorni dall'inizio vero, non dal rientro."""
         cur = self._conn.execute(
             "INSERT INTO positions (deal_id, epic, strategy, direction, size, "
             "entry_level, entry_ts, status) VALUES (?,?,?,?,?,?,?, 'OPEN')",
             (deal_id, epic, strategy, direction.upper(), size, entry_level,
-             _utc_now()),
+             entry_ts or _utc_now()),
         )
         self._conn.commit()
         logger.info(f"[Store] OPEN #{cur.lastrowid} {strategy} {direction} "
@@ -112,6 +116,31 @@ class PositionStore:
         return [dict(r) for r in self._conn.execute(
             "SELECT * FROM positions ORDER BY id DESC LIMIT ?",
             (limit,)).fetchall()]
+
+    def last_eod_batch(self, strategy: str, epic: str,
+                       max_age_days: int = 4) -> List[Dict[str, Any]]:
+        """Le unità dell'ULTIMO flat di fine giornata (exit_reason='eod_flat'),
+        per la rientrata mattutina dell'episodio intraday (issue #4).
+        Ritorna [] se: l'ultima chiusura NON è eod_flat (episodio finito con
+        segnale/altro), o è più vecchia di max_age_days (weekend lungo ok,
+        episodi antichi no)."""
+        rows = self._conn.execute(
+            "SELECT * FROM positions WHERE status='CLOSED' AND strategy=? "
+            "AND epic=? ORDER BY exit_ts DESC LIMIT 10",
+            (strategy, epic)).fetchall()
+        if not rows or rows[0]["exit_reason"] != "eod_flat":
+            return []
+        last_day = str(rows[0]["exit_ts"])[:10]
+        try:
+            age = (datetime.now(timezone.utc)
+                   - datetime.fromisoformat(rows[0]["exit_ts"])).days
+        except (TypeError, ValueError):
+            return []
+        if age > max_age_days:
+            return []
+        return [dict(r) for r in rows
+                if r["exit_reason"] == "eod_flat"
+                and str(r["exit_ts"])[:10] == last_day]
 
     # ------------------------------------------------------------------
     # Reconcile con IG (da chiamare a OGNI ciclo prima di operare)

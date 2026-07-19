@@ -76,6 +76,7 @@ backtest: lì non esistono risultati, solo prior.**
 | ~~C9~~ | ~~Timing pre-FOMC~~ | ❌ **FALSIFICATO** (15 lug): −0.1%/trade e meno frequenza | — | morto |
 | **C10** | Ladder call | 2 posizioni sfalsate di 2 settimane (~22 ingressi/anno) | ⭐⭐ | 3° (da €2k) |
 | **C11** | Multi-indice opzioni | stessi edge su DAX/FTSE IG se lo smile è favorevole | ⭐⭐⭐ | settimana |
+| **C12** | Diagonale (ala lunga) | proposta Antonio: ala 2-3 mesi ferma vs ala mensile — back-of-envelope dice NO (−18%, skew/vega/deriva) MA smile back-month IG mai misurato → gate di misura prima | ⭐ | gate misura |
 
 ---
 

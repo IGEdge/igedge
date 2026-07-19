@@ -54,6 +54,12 @@ class ThrottledClient:
     def search_markets(self, *a, **k):
         return self._throttled(self._c.search_markets, *a, **k)
 
+    def get_accounts(self, *a, **k):
+        return self._throttled(self._c.get_accounts, *a, **k)
+
+    def get_prices_v2(self, *a, **k):      # barre daily (bot CFD, issue #10)
+        return self._throttled(self._c.get_prices_v2, *a, **k)
+
     # login/logout: una tantum, non throttlati -------------------------
     def login(self):
         return self._c.login()

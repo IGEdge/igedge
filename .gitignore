@@ -1,5 +1,11 @@
 # Environment
 .env
+
+# Issuebeam (token locale, manifest import, slug repo opzionale)
+.secrets/
+tracker/github_repo
+tracker/import-manifest.json
+tracker/.feedback_state.json
 venv/
 env/
 ENV/
