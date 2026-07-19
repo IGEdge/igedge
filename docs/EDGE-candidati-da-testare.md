@@ -148,10 +148,46 @@ programma è EPISODICO (~4 trade/anno a grappoli): tra episodi l'ala lunga
 sanguina theta senza premio incassato contro; (d) **margine**: il netting IG
 TRA scadenze diverse è ignoto (probabilmente NON netta → margine peggiore).
 
-**La porta aperta (perché non si boccia a tavolino):** il modello assume slope
-skew 0.30 UGUALE su tutte le scadenze; nella realtà lo skew tende ad
-APPIATTIRSI sui mesi lunghi, e **lo smile back-month su IG non è mai stato
-misurato**. Se molto più piatto → i conti si ribaltano.
+### Il PERCHÉ, spiegato per esteso (per rileggerlo tra mesi senza la chat)
+
+**1. La protezione si paga in σ, non in mesi.** Lo stesso strike a −14% è
+"lontanissimo" per un'opzione a 1 mese (caduta da 2.5 deviazioni ≈ quasi
+impossibile) ma "vicino" per una a 3 mesi (1.5 deviazioni ≈ succede eccome:
+la mossa attesa cresce con √T). Analogia assicurativa: "casa distrutta entro
+1 mese" costa spiccioli, "entro 3 mesi" costa molto di più — è più probabile
+che serva. NON compri 3 mesi al prezzo di 1.2: compri un rischio più grande.
+Numeri: ala mensile $9.7×3=$29 vs ala 3M stesso strike $34.
+
+**2. Lo skew (il NOSTRO edge) ti si rivolta contro.** L'edge #2 incassa il
+sovrapprezzo delle put lontane. Comprando l'ala lunga — più "vicina" in
+σ-spazio (punto 1) — entri nella zona dove lo skew morde: paghi una fetta
+grossa dello stesso pedaggio che di solito riscuotiamo. L'ala mensile a 2.5σ
+è così lontana che lo skew si applica a un premio minuscolo.
+
+**3. La vega è un problema di TEMPISMO nostro.** L'opzione 3M è ~3× più
+sensibile alla vol. Noi compriamo POST-PANICO: vol alta che (per il nostro
+stesso filtro) sta scendendo → compreresti l'oggetto più vol-sensibile nel
+momento in cui ti aspetti il calo (19→15 = −$9 sull'ala lunga). Chi ricompra
+l'ala ogni mese la paga alla vol NUOVA più bassa: il "compratore a rate"
+beneficia del calo, quello "in blocco" lo subisce.
+
+**4. Deriva dello strike + costo del roll.** Se l'S&P sale del 4%, il mese
+dopo vendi put a strike più alti ma la protezione è rimasta in basso → la
+distanza short-ala si ALLARGA = perdita massima maggiore. Per riallineare
+devi rollare l'ala (ripaghi lo spread) → il risparmio evapora. L'ala mensile
+si resetta gratis. E il programma è EPISODICO (~4/anno a grappoli): tra
+episodi l'ala lunga brucia theta senza short vendute contro che la finanzino
+— la calendar ha senso per chi vende OGNI mese senza eccezioni, noi no.
+
+**Quando invece POTREBBE vincere (le tre porte aperte):**
+(a) se lo skew IG sui mesi lontani è molto più PIATTO del vicino (nel mondo
+di solito si appiattisce; su IG MAI misurato → il gate di misura);
+(b) in un CRASH la diagonale fa meglio: la vega che costa in tempi calmi paga
+alla grande quando la vol esplode;
+(c) negli episodi a grappolo (2020/2022: 8-10 trade consecutivi)
+l'ammortamento su short consecutive funziona davvero.
+Il modello assume slope skew 0.30 UGUALE su tutte le scadenze — se la misura
+dirà "molto più piatta", i conti si ribaltano e si passa al backtest.
 
 **Piano (3 passi, in ordine, ognuno può uccidere):**
 1. **GATE DI MISURA**: estendere `sample_skew_us500.py` per campionare UNA
