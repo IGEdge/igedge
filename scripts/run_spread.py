@@ -5,7 +5,11 @@ Ciclo operativo degli edge OPZIONI a 2 gambe. DEFAULT = plan-only (nessun ordine
   EDGE #2: python scripts/run_spread.py --strat putspread --live
   EDGE #3: python scripts/run_spread.py --strat callspread --live
   entrambi: --strat both
-  APRIRE davvero (pilot): aggiungi --arm --i-understand-live-risk
+  APRIRE davvero: --arm --i-understand-live-risk --live
+    + allowlist strategie (modulare, niente hardcode nel demone):
+      --arm-strategies putspread
+      oppure env OPTIONS_ARMED_STRATEGIES=putspread
+    Allowlist VUOTA = plan-only totale anche con --arm (default sicuro).
 
 Segnali raccolti qui e passati all'orchestratore:
   - VIX corrente + VIX3M (CBOE delayed ~15min; fallback: ultimo CSV locale)
@@ -32,11 +36,13 @@ load_dotenv(os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file_
 import pandas as pd
 
 from src.core.ig_client import IGClient
+from src.options.arming import (ENV_ARMED, is_strategy_armed,
+                                resolve_armed_allowlist, unknown_in)
 from src.options.audit_log import AuditLog
-from src.options.executor import CondorExecutor
+from src.options.executor import SpreadExecutor
 from src.options.session import PersistentIGSession
 from src.options.spread_orchestrator import SpreadConfig, SpreadOrchestrator
-from src.options.store import CondorStore
+from src.options.store import SpreadStore, resolve_spreads_db_path
 from src.options.throttle import ThrottledClient
 
 CBOE_Q = "https://cdn.cboe.com/api/global/delayed_quotes/quotes/_{sym}.json"
@@ -102,20 +108,51 @@ def main():
                     default="both")
     ap.add_argument("--live", action="store_true")
     ap.add_argument("--arm", action="store_true",
-                    help="APRE davvero (richiede --live e --i-understand-live-risk)")
+                    help="APRE davvero. DEMO: basta --arm. LIVE: serve anche "
+                         "--live e --i-understand-live-risk")
     ap.add_argument("--i-understand-live-risk", action="store_true")
+    ap.add_argument("--arm-strategies", default=None,
+                    help=f"strategie autorizzate ad aprire se --arm "
+                         f"(csv). Default: env {ENV_ARMED}. Vuoto=nessuna.")
     ap.add_argument("--capital", type=float, default=1000.0,
                     help="equity del conto opzioni (€): 1 contratto ogni €1000")
     ap.add_argument("--throttle", type=float, default=2.5)
-    ap.add_argument("--db", default="data/condors.db")
+    ap.add_argument("--db", default=None,
+                    help="SQLite spread store (default: data/spreads.db, "
+                         "fallback automatico a data/condors.db se esiste)")
     ap.add_argument("--vix", type=float, default=None, help="forza il VIX (test)")
+    ap.add_argument("--vix10max", type=float, default=None,
+                    help="forza il max VIX 10gg (test raffreddamento)")
     args = ap.parse_args()
 
-    armed = args.arm and args.i_understand_live_risk and args.live
-    if args.arm and not armed:
-        print("⛔ --arm ignorato: servono --live E --i-understand-live-risk. Plan-only.")
+    # Gate globale: come bot CFD — su DEMO basta --arm; su LIVE serve anche
+    # --i-understand-live-risk. --live sceglie il conto (LIVE vs DEMO), non
+    # è più un blocco assoluto dell'arm su DEMO (serve per test aperture).
+    if args.live:
+        gate_open = bool(args.arm and args.i_understand_live_risk)
+        if args.arm and not gate_open:
+            print("⛔ --arm ignorato su LIVE: serve anche --i-understand-live-risk. "
+                  "Plan-only.")
+    else:
+        gate_open = bool(args.arm)
+        if args.arm:
+            print("⚠️ DEMO ARMATO: tenterà ordini sul conto DEMO (non LIVE).")
+    allowlist = resolve_armed_allowlist(args.arm_strategies)
+    for bad in unknown_in(args.arm_strategies or os.getenv(ENV_ARMED)):
+        print(f"⚠️ strategia sconosciuta in allowlist ignorata: {bad}")
+    # Allowlist vuota + --strat singolo → arma solo quella (pilot mirato).
+    # Allowlist vuota + --strat both → plan-only totale (default sicuro, no hardcode).
+    if gate_open and not allowlist:
+        if args.strat != "both":
+            allowlist = {args.strat}
+            print(f"ALLOWLIST implicita da --strat {args.strat}")
+        else:
+            print(f"⛔ gate --arm aperto con --strat both ma allowlist VUOTA "
+                  f"(--arm-strategies / {ENV_ARMED}) → plan-only totale.")
+            gate_open = False
     if not args.live:
-        print("(nota: il demo IG non ha le mensili → usa --live, è read-only in plan-only)")
+        print("(nota: il demo IG spesso non ha le mensili US500 — "
+              "l'apertura può fallire con errore IG chiaro)")
 
     if args.live:
         key, ident, pwd = (os.getenv("IG_LIVE_API_KEY"), os.getenv("IG_LIVE_IDENTIFIER"),
@@ -130,13 +167,16 @@ def main():
                        os.getenv("IG_OPT_ACCOUNT_ID") or os.getenv("IG_ACCOUNT_ID") or None)
         sess_file = "data/ig_session_demo.json"
 
-    audit = AuditLog(dry_run=not armed)
+    # dry_run=False solo se almeno una strategia potrebbe aprire
+    any_armed = gate_open and bool(allowlist)
+    audit = AuditLog(dry_run=not any_armed)
     sess = PersistentIGSession(raw, sess_file, audit=audit)
     if not sess.ensure():
         print("❌ sessione IG non disponibile"); return 1
     client = ThrottledClient(raw, min_interval=args.throttle)
-    store = CondorStore(args.db)
-    execu = CondorExecutor(client, audit=audit, live=args.live)
+    db_path = resolve_spreads_db_path(args.db)
+    store = SpreadStore(db_path)
+    execu = SpreadExecutor(client, audit=audit, live=args.live)
     orch = SpreadOrchestrator(client, store, execu, audit=audit,
                               spread_cfg=SpreadConfig(capital_eur=args.capital))
 
@@ -161,6 +201,8 @@ def main():
     sig = gather_signals()
     if args.vix is not None:
         sig["vix_now"], sig["vix_src"] = args.vix, "override"
+    if args.vix10max is not None:
+        sig["vix10max"] = args.vix10max
     vix_txt = "n/d" if sig["vix_now"] is None else f"{sig['vix_now']} ({sig['vix_src']})"
     print(f"SEGNALI  VIX {vix_txt}"
           f"   max10gg {sig['vix10max'] and round(sig['vix10max'], 1)}"
@@ -171,10 +213,18 @@ def main():
         print("❌ VIX non disponibile"); return 1
 
     strats = ["putspread", "callspread"] if args.strat == "both" else [args.strat]
+    if allowlist:
+        print(f"ALLOWLIST arm: {', '.join(sorted(allowlist))} "
+              f"(gate {'APERTO' if gate_open else 'chiuso'})")
+    else:
+        print("ALLOWLIST arm: (vuota) → nessuna strategia aprirà")
     for strat in strats:
+        strat_armed = is_strategy_armed(strat, gate_open=gate_open,
+                                        allowlist=allowlist)
         print("\n" + "=" * 62)
-        print(f"[{strat.upper()}]  {'🔴 ARMATO' if armed else '🟢 plan-only'}   capitale €{args.capital:,.0f}".replace(",", "."))
-        plan = orch.run_spread(strat, armed=armed, guard=guard,
+        mode = "🔴 ARMATO" if strat_armed else "🟢 plan-only"
+        print(f"[{strat.upper()}]  {mode}   capitale €{args.capital:,.0f}".replace(",", "."))
+        plan = orch.run_spread(strat, armed=strat_armed, guard=guard,
                                vix_now=sig["vix_now"], vix_src=sig["vix_src"],
                                vix10max=sig["vix10max"], ts_ratio=sig["ts_ratio"],
                                sma200=sig["sma200"])
@@ -199,7 +249,7 @@ def main():
                   f" — cap 50% = {m['cap']:.0f} ✓")
         elif m.get("warning"):
             print(f"  ⚠️ {m['warning']}")
-        if armed:
+        if strat_armed:
             print(f"  ESITO: opened={plan.get('opened')}  store #{plan.get('store_id')}  "
                   f"stato {s.status}")
         else:

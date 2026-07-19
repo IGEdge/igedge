@@ -29,6 +29,9 @@ services:
       - TZ=Europe/Rome
       - GAMMA_SCANNER_DIR=/gamma    # la guardia legge /gamma/data/cache/market_state_spy.json
       # - GUARD_MODE=shadow         # guardia solo-log (default: active = modula)
+      # Arm demone (default OFF). Allowlist in .env: OPTIONS_ARMED_STRATEGIES=putspread
+      # - OPTIONS_DAEMON_ARM=true
+      # - OPTIONS_DAEMON_I_UNDERSTAND_LIVE_RISK=true
     volumes:
       - ../../data:/app/data:rw
       - ../../logs:/app/logs:rw

@@ -1,41 +1,40 @@
 """
-CondorExecutor — apertura/chiusura SICURA ed ECONOMICA delle 4 gambe.
+SpreadExecutor — apertura/chiusura SICURA di spread multi-gamba (2+ legs).
 
 Principio: mai uno short nudo — MA senza sprecare spread disfacendo tutto al primo
-errore di IG. Chiave: **ordine longs-first**. Aprendo prima le 2 ali di protezione
+errore di IG. Chiave: **ordine longs-first**. Aprendo prima le ali di protezione
 e poi gli short, OGNI stato intermedio è a rischio definito (mai naked). Quindi, se
 una gamba fallisce, si può **INSISTERE (ritentare)** su quella gamba invece di
 disfare — è sicuro e non butta via lo spread già pagato.
 
-Apertura (`open_condor`):
-  0. PREFLIGHT: le 4 gambe tradeable con quote sane, altrimenti non si apre nulla.
+Apertura (`open_spread` / alias `open_condor`):
+  0. PREFLIGHT: gambe tradeable con quote sane, altrimenti non si apre nulla.
   1. Apri in ordine longs-first. Su ogni gamba RITENTA (backoff) con guardia
      anti-doppione (controllo get_positions prima di ritentare → mai due volte).
   2. Se una gamba fallisce DOPO tutti i retry:
        - la posizione è a rischio definito (longs-first) → NON si disfa;
        - **regola invalicabile:** se manca un'ALA, NON si apre il suo short;
        - default `on_fail="hold"`: si TIENE il parziale (defined-risk) + ALLARME
-         CRITICO all'operatore (completare/decidere). `on_fail="unwind"` = flat.
-  3. Guardia difensiva: se mai risultasse uno short nudo (non dovrebbe, con
-     longs-first) → unwind forzato immediato.
+         CRITICO all'operatore. `on_fail="unwind"` = flat.
+  3. Guardia difensiva: se mai risultasse uno short nudo → unwind forzato.
 
-Chiusura (`close_condor`): shorts-first (togli il rischio), con retry.
+Chiusura (`close_spread` / alias `close_condor`): shorts-first, con retry.
 
-Il client è iniettabile: reale (IGClient live) o simulato (MockIG) per il dry-run.
+Naming generico: issue #16 (ex CondorExecutor). Alias retrocompat in fondo.
 """
 import time
-from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional
 
 from .audit_log import AuditLog
-from .condor import Condor, Leg
+from .spread import Leg, OptionSpread
 
 
 def _utc() -> str:
+    from datetime import datetime, timezone
     return datetime.now(timezone.utc).isoformat()
 
 
-class CondorExecutor:
+class SpreadExecutor:
     def __init__(self, client, audit: AuditLog = None, live: bool = False,
                  max_spread_pts: float = 6.0, currency: str = "USD",
                  open_retries: int = 5, close_retries: int = 5,
@@ -45,17 +44,14 @@ class CondorExecutor:
         self.live = live
         self.max_spread_pts = max_spread_pts
         self.currency = currency
-        self.open_retries = open_retries         # insisti sulla gamba che manca
-        self.close_retries = close_retries       # una chiusura DEVE riuscire
+        self.open_retries = open_retries
+        self.close_retries = close_retries
         self.retry_delay = retry_delay
-        self.on_fail = on_fail                    # "hold" (default) | "unwind"
+        self.on_fail = on_fail
 
-    # ==================================================================
-    # PREFLIGHT
-    # ==================================================================
-    def preflight(self, condor: Condor) -> Dict[str, Any]:
+    def preflight(self, spread: OptionSpread) -> Dict[str, Any]:
         problems = []
-        for leg in condor.legs:
+        for leg in spread.legs:
             m = self.client.get_market(leg.epic)
             if not m:
                 problems.append((leg.role, "no_market_data")); continue
@@ -69,26 +65,24 @@ class CondorExecutor:
                 problems.append((leg.role, f"spread={offer - bid:.1f}>{self.max_spread_pts}"))
         ok = not problems
         self.audit.event("preflight", level="INFO" if ok else "ERROR",
-                         ok=ok, problems=problems, expiry=condor.expiry)
+                         ok=ok, problems=problems, expiry=spread.expiry)
         return {"ok": ok, "problems": problems}
 
-    # ==================================================================
-    # APERTURA
-    # ==================================================================
-    def open_condor(self, condor: Condor, on_fail: Optional[str] = None) -> Dict[str, Any]:
+    def open_spread(self, spread: OptionSpread,
+                    on_fail: Optional[str] = None) -> Dict[str, Any]:
         policy = on_fail or self.on_fail
-        self.audit.info("condor_open_start", desc=condor.describe(), live=self.live,
+        self.audit.info("spread_open_start", desc=spread.describe(), live=self.live,
                         policy=policy)
 
-        pf = self.preflight(condor)
+        pf = self.preflight(spread)
         if not pf["ok"]:
-            condor.status = "ABORTED"
-            self.audit.error("condor_aborted_preflight", problems=pf["problems"])
+            spread.status = "ABORTED"
+            self.audit.error("spread_aborted_preflight", problems=pf["problems"])
             return {"ok": False, "reason": "preflight_failed", "problems": pf["problems"]}
 
         opened: List[Leg] = []
-        for leg in condor.open_order():          # LONGS first, poi SHORTS
-            res = self._open_leg_robust(leg)     # ritenta + guardia anti-doppione
+        for leg in spread.open_order():
+            res = self._open_leg_robust(leg)
             if res["ok"]:
                 leg.status = "OPEN"; leg.deal_id = res["deal_id"]; leg.fill_level = res.get("level")
                 opened.append(leg)
@@ -100,44 +94,40 @@ class CondorExecutor:
                 self.audit.critical("leg_open_persistent_fail", role=leg.role,
                                     epic=leg.epic, reason=res["reason"],
                                     retries=self.open_retries)
-                return self._handle_incomplete(condor, opened, leg, policy)
+                return self._handle_incomplete(spread, opened, leg, policy)
 
-        condor.status = "OPEN"; condor.opened_ts = _utc()
-        self.audit.info("condor_OPEN_OK", expiry=condor.expiry, legs=len(opened),
+        spread.status = "OPEN"; spread.opened_ts = _utc()
+        self.audit.info("spread_OPEN_OK", expiry=spread.expiry, legs=len(opened),
                         deals=[l.deal_id for l in opened])
-        return {"ok": True, "condor": condor}
+        return {"ok": True, "spread": spread, "condor": spread}
 
-    def _handle_incomplete(self, condor: Condor, opened: List[Leg],
+    def open_condor(self, condor: OptionSpread, on_fail: Optional[str] = None):
+        return self.open_spread(condor, on_fail=on_fail)
+
+    def _handle_incomplete(self, spread: OptionSpread, opened: List[Leg],
                            failed: Leg, policy: str) -> Dict[str, Any]:
-        """Gestisce l'apertura incompleta. La posizione è defined-risk (longs-first);
-        di default la si TIENE + allarme. Guardia: se mai fosse naked → unwind."""
-        # difesa: c'è uno short OPEN senza la sua ala LONG aperta?
-        longs_all_open = all(l.status == "OPEN" for l in condor.legs if l.is_long)
-        naked = any(l.status == "OPEN" and not l.is_long for l in condor.legs) and not longs_all_open
+        longs_all_open = all(l.status == "OPEN" for l in spread.legs if l.is_long)
+        naked = any(l.status == "OPEN" and not l.is_long for l in spread.legs) and not longs_all_open
         if naked:
             self.audit.critical("NAKED_SHORT_DETECTED_forcing_unwind", failed=failed.role)
-            self._unwind(condor, opened, trigger=f"naked_after:{failed.role}")
+            self._unwind(spread, opened, trigger=f"naked_after:{failed.role}")
             return {"ok": False, "reason": f"naked_unwound:{failed.role}", "action": "unwound"}
 
         if policy == "unwind":
-            self._unwind(condor, opened, trigger=f"policy_unwind:{failed.role}")
+            self._unwind(spread, opened, trigger=f"policy_unwind:{failed.role}")
             return {"ok": False, "reason": f"incomplete:{failed.role}", "action": "unwound"}
 
-        # default HOLD: parziale a rischio definito, tenuto + allarme operatore
-        condor.status = "INCOMPLETE_HELD"
+        spread.status = "INCOMPLETE_HELD"
         self.audit.critical("INCOMPLETE_HELD_defined_risk", failed=failed.role,
                             open_legs=[l.role for l in opened],
-                            note="posizione a rischio definito; operatore: completa la gamba mancante o decidi")
+                            note="posizione a rischio definito; operatore: completa o decidi")
         return {"ok": False, "reason": f"incomplete_held:{failed.role}",
                 "action": "held", "open_legs": [l.role for l in opened]}
 
-    # ==================================================================
-    # CHIUSURA (normale) / UNWIND (solo su policy o difesa)
-    # ==================================================================
-    def close_condor(self, condor: Condor, reason: str = "manual") -> Dict[str, Any]:
-        self.audit.info("condor_close_start", reason=reason, expiry=condor.expiry)
+    def close_spread(self, spread: OptionSpread, reason: str = "manual") -> Dict[str, Any]:
+        self.audit.info("spread_close_start", reason=reason, expiry=spread.expiry)
         stuck = []
-        for leg in condor.close_order():         # SHORTS first
+        for leg in spread.close_order():
             if leg.status != "OPEN":
                 continue
             res = self._close_leg(leg)
@@ -146,17 +136,21 @@ class CondorExecutor:
                 self.audit.info("leg_closed", role=leg.role, deal_id=leg.deal_id, fill=res.get("level"))
             else:
                 stuck.append(leg)
-                self.audit.critical("leg_close_FAILED", role=leg.role, deal_id=leg.deal_id, reason=res["reason"])
+                self.audit.critical("leg_close_FAILED", role=leg.role, deal_id=leg.deal_id,
+                                    reason=res["reason"])
         if stuck:
-            condor.status = "PARTIAL_ERROR"
+            spread.status = "PARTIAL_ERROR"
             self.audit.critical("MANUAL_INTERVENTION_NEEDED", stuck=[l.role for l in stuck],
                                 deal_ids=[l.deal_id for l in stuck])
             return {"ok": False, "reason": "close_failed", "stuck": [l.role for l in stuck]}
-        condor.status = "CLOSED"
-        self.audit.info("condor_CLOSED_OK", reason=reason)
+        spread.status = "CLOSED"
+        self.audit.info("spread_CLOSED_OK", reason=reason)
         return {"ok": True}
 
-    def _unwind(self, condor: Condor, opened: List[Leg], trigger: str) -> None:
+    def close_condor(self, condor: OptionSpread, reason: str = "manual"):
+        return self.close_spread(condor, reason=reason)
+
+    def _unwind(self, spread: OptionSpread, opened: List[Leg], trigger: str) -> None:
         self.audit.warn("UNWIND_start", trigger=trigger, to_close=len(opened))
         stuck = []
         for leg in reversed(opened):
@@ -166,22 +160,18 @@ class CondorExecutor:
                 self.audit.info("leg_unwound", role=leg.role, deal_id=leg.deal_id)
             else:
                 stuck.append(leg)
-                self.audit.critical("UNWIND_leg_FAILED", role=leg.role, deal_id=leg.deal_id, reason=res["reason"])
+                self.audit.critical("UNWIND_leg_FAILED", role=leg.role, deal_id=leg.deal_id,
+                                    reason=res["reason"])
         if stuck:
-            condor.status = "PARTIAL_ERROR"
+            spread.status = "PARTIAL_ERROR"
             self.audit.critical("MANUAL_INTERVENTION_NEEDED", trigger=trigger,
-                                stuck=[l.role for l in stuck], deal_ids=[l.deal_id for l in stuck])
+                                stuck=[l.role for l in stuck],
+                                deal_ids=[l.deal_id for l in stuck])
         else:
-            condor.status = "ABORTED"
+            spread.status = "ABORTED"
             self.audit.info("UNWIND_complete_FLAT", trigger=trigger)
 
-    # ==================================================================
-    # Gambe singole
-    # ==================================================================
     def _open_leg_robust(self, leg: Leg) -> Dict[str, Any]:
-        """Apre una gamba INSISTENDO: ritenta fino a open_retries. Dopo ogni
-        fallimento controlla get_positions (guardia anti-doppione): se la gamba è
-        in realtà aperta (conferma persa), la adotta invece di riaprirla."""
         last = {"ok": False, "reason": "unknown"}
         for attempt in range(self.open_retries + 1):
             last = self._open_leg(leg)
@@ -189,7 +179,6 @@ class CondorExecutor:
                 if attempt > 0:
                     self.audit.info("leg_open_retry_ok", role=leg.role, attempt=attempt + 1)
                 return last
-            # fallita: forse è passata comunque? (conferma ambigua)
             existing = self._find_open_position(leg.epic)
             if existing:
                 self.audit.warn("leg_open_adopted_ambiguous", role=leg.role,
@@ -212,7 +201,6 @@ class CondorExecutor:
         return self._verify(conf)
 
     def _close_leg(self, leg: Leg) -> Dict[str, Any]:
-        """Chiude una gamba; flattare è prioritario → ritenta fino a close_retries."""
         if not leg.deal_id:
             return {"ok": False, "reason": "no_deal_id"}
         last = {"ok": False, "reason": "unknown"}
@@ -233,8 +221,6 @@ class CondorExecutor:
         return last
 
     def _find_open_position(self, epic: str) -> Optional[Dict[str, Any]]:
-        """Guardia anti-doppione: c'è già una nostra posizione aperta su questo epic?
-        (usata solo dopo un'apertura fallita/ambigua)."""
         try:
             for item in self.client.get_positions():
                 pos = item.get("position", {}) or {}
@@ -247,9 +233,11 @@ class CondorExecutor:
 
     @staticmethod
     def _verify(conf) -> Dict[str, Any]:
-        """OK solo se ACCEPTED con dealId. None/REJECTED/senza dealId = fallimento."""
         if conf is None:
             return {"ok": False, "reason": "no_confirm"}
         if conf.get("dealStatus") == "ACCEPTED" and conf.get("dealId"):
             return {"ok": True, "deal_id": conf.get("dealId"), "level": conf.get("level")}
         return {"ok": False, "reason": conf.get("reason") or conf.get("dealStatus") or "rejected"}
+
+
+CondorExecutor = SpreadExecutor

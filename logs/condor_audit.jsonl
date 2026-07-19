@@ -257,3 +257,124 @@
 {"ts": "2026-07-17T14:11:36.131459+00:00", "action": "spread_plan", "dry_run": true, "strat": "callspread", "desc": "Condor AUG-26 spot=7515 vix=18.5 credit~-135.3 maxloss~135.3 | long_call[BUY CALL 7500 x1] short_call[SELL CALL 7950 x1]", "risk_pts": 135.3, "reward_pts": 314.7, "size": 1, "risk_eur": 126.0, "signal": "uptrend: spot 7515 > SMA200 6976", "guard": "NORMALE"}
 {"ts": "2026-07-19T07:36:58.750400+00:00", "action": "session_reused", "dry_run": true, "account": "TVYYM", "age_s": 882}
 {"ts": "2026-07-19T07:38:57.697613+00:00", "action": "session_reused", "dry_run": true, "account": "TVYYM", "age_s": 1001}
+{"ts": "2026-07-19T16:12:23.216884+00:00", "action": "session_new_login", "dry_run": true, "account": "Z4YQIW"}
+{"ts": "2026-07-19T16:12:30.023196+00:00", "action": "spread_skip", "dry_run": true, "strat": "putspread", "reason": "VIX 18.8 < 20: niente panico da vendere"}
+{"ts": "2026-07-19T16:14:35.420575+00:00", "action": "session_reused", "dry_run": false, "account": "Z4YQIW", "age_s": 132}
+{"ts": "2026-07-19T16:14:42.302001+00:00", "action": "spread_skip", "dry_run": false, "strat": "putspread", "reason": "VIX 25.0 non in raffreddamento (serve < 0.90×max10gg=16.9)"}
+{"ts": "2026-07-19T16:15:09.336210+00:00", "action": "session_reused", "dry_run": false, "account": "Z4YQIW", "age_s": 166}
+{"ts": "2026-07-19T16:15:23.468594+00:00", "action": "margin_gate_ok", "dry_run": false, "balance": 46322.79, "available": 46322.79, "currency": "EUR", "committed": 0.0, "total_after": 456.0, "cap": 23161.0}
+{"ts": "2026-07-19T16:15:23.469310+00:00", "action": "spread_plan", "dry_run": false, "strat": "putspread", "desc": "Condor AUG-26 spot=7477 vix=22.0 credit~10.2 maxloss~489.8 | long_put_wing[BUY PUT 6250 x1] short_put[SELL PUT 6750 x1]", "risk_pts": 489.8, "reward_pts": 10.2, "size": 1, "risk_eur": 456.0, "signal": "post-panico: spike in raffreddamento, TS ok", "guard": "NORMALE"}
+{"ts": "2026-07-19T16:15:23.469607+00:00", "action": "ARMED_spread_open", "dry_run": false, "strat": "putspread", "desc": "Condor AUG-26 spot=7477 vix=22.0 credit~10.2 maxloss~489.8 | long_put_wing[BUY PUT 6250 x1] short_put[SELL PUT 6750 x1]"}
+{"ts": "2026-07-19T16:15:23.469944+00:00", "action": "condor_open_start", "dry_run": false, "desc": "Condor AUG-26 spot=7477 vix=22.0 credit~10.2 maxloss~489.8 | long_put_wing[BUY PUT 6250 x1] short_put[SELL PUT 6750 x1]", "live": false, "policy": "hold"}
+{"ts": "2026-07-19T16:15:28.372269+00:00", "action": "preflight", "dry_run": false, "ok": false, "problems": [["long_put_wing", "status=EDITS_ONLY"], ["short_put", "status=EDITS_ONLY"]], "expiry": "AUG-26"}
+{"ts": "2026-07-19T16:15:28.372806+00:00", "action": "condor_aborted_preflight", "dry_run": false, "problems": [["long_put_wing", "status=EDITS_ONLY"], ["short_put", "status=EDITS_ONLY"]]}
+{"ts": "2026-07-19T16:49:44.680090+00:00", "action": "spread_open_start", "dry_run": true, "desc": "Spread[condor] 31-AUG-26 spot=7565 vix=15.0 credit~20.0 maxloss~200.0 | long_put_wing[BUY PUT 7000 x1.0] long_call_wing[BUY CALL 8140 x1.0] short_put[SELL PUT 7290 x1.0] short_call[SELL CALL 7850 x1.0]", "live": false, "policy": "hold"}
+{"ts": "2026-07-19T16:49:44.682173+00:00", "action": "preflight", "dry_run": true, "ok": true, "problems": [], "expiry": "31-AUG-26"}
+{"ts": "2026-07-19T16:49:44.682719+00:00", "action": "leg_opened", "dry_run": true, "role": "long_put_wing", "epic": "EP.long_put_wing", "direction": "BUY", "deal_id": "D0", "fill": 100.0, "adopted": false}
+{"ts": "2026-07-19T16:49:44.683674+00:00", "action": "leg_opened", "dry_run": true, "role": "long_call_wing", "epic": "EP.long_call_wing", "direction": "BUY", "deal_id": "D1", "fill": 100.0, "adopted": false}
+{"ts": "2026-07-19T16:49:44.684006+00:00", "action": "leg_opened", "dry_run": true, "role": "short_put", "epic": "EP.short_put", "direction": "SELL", "deal_id": "D2", "fill": 100.0, "adopted": false}
+{"ts": "2026-07-19T16:49:44.684541+00:00", "action": "leg_opened", "dry_run": true, "role": "short_call", "epic": "EP.short_call", "direction": "SELL", "deal_id": "D3", "fill": 100.0, "adopted": false}
+{"ts": "2026-07-19T16:49:44.684781+00:00", "action": "spread_OPEN_OK", "dry_run": true, "expiry": "31-AUG-26", "legs": 4, "deals": ["D0", "D1", "D2", "D3"]}
+{"ts": "2026-07-19T16:49:44.685381+00:00", "action": "spread_open_start", "dry_run": true, "desc": "Spread[condor] 31-AUG-26 spot=7565 vix=15.0 credit~20.0 maxloss~200.0 | long_put_wing[BUY PUT 7000 x1.0] long_call_wing[BUY CALL 8140 x1.0] short_put[SELL PUT 7290 x1.0] short_call[SELL CALL 7850 x1.0]", "live": false, "policy": "hold"}
+{"ts": "2026-07-19T16:49:44.685623+00:00", "action": "preflight", "dry_run": true, "ok": true, "problems": [], "expiry": "31-AUG-26"}
+{"ts": "2026-07-19T16:49:44.685873+00:00", "action": "leg_opened", "dry_run": true, "role": "long_put_wing", "epic": "EP.long_put_wing", "direction": "BUY", "deal_id": "D0", "fill": 100.0, "adopted": false}
+{"ts": "2026-07-19T16:49:44.686045+00:00", "action": "leg_opened", "dry_run": true, "role": "long_call_wing", "epic": "EP.long_call_wing", "direction": "BUY", "deal_id": "D1", "fill": 100.0, "adopted": false}
+{"ts": "2026-07-19T16:49:44.686220+00:00", "action": "leg_opened", "dry_run": true, "role": "short_put", "epic": "EP.short_put", "direction": "SELL", "deal_id": "D2", "fill": 100.0, "adopted": false}
+{"ts": "2026-07-19T16:49:44.686392+00:00", "action": "leg_open_retry", "dry_run": true, "role": "short_call", "epic": "EP.short_call", "attempt": 1, "reason": "REQUOTE"}
+{"ts": "2026-07-19T16:49:44.686563+00:00", "action": "leg_open_retry", "dry_run": true, "role": "short_call", "epic": "EP.short_call", "attempt": 2, "reason": "REQUOTE"}
+{"ts": "2026-07-19T16:49:44.686721+00:00", "action": "leg_open_retry_ok", "dry_run": true, "role": "short_call", "attempt": 3}
+{"ts": "2026-07-19T16:49:44.686866+00:00", "action": "leg_opened", "dry_run": true, "role": "short_call", "epic": "EP.short_call", "direction": "SELL", "deal_id": "D3", "fill": 100.0, "adopted": false}
+{"ts": "2026-07-19T16:49:44.687082+00:00", "action": "spread_OPEN_OK", "dry_run": true, "expiry": "31-AUG-26", "legs": 4, "deals": ["D0", "D1", "D2", "D3"]}
+{"ts": "2026-07-19T16:49:44.687725+00:00", "action": "spread_open_start", "dry_run": true, "desc": "Spread[condor] 31-AUG-26 spot=7565 vix=15.0 credit~20.0 maxloss~200.0 | long_put_wing[BUY PUT 7000 x1.0] long_call_wing[BUY CALL 8140 x1.0] short_put[SELL PUT 7290 x1.0] short_call[SELL CALL 7850 x1.0]", "live": false, "policy": "hold"}
+{"ts": "2026-07-19T16:49:44.688152+00:00", "action": "preflight", "dry_run": true, "ok": true, "problems": [], "expiry": "31-AUG-26"}
+{"ts": "2026-07-19T16:49:44.688470+00:00", "action": "leg_opened", "dry_run": true, "role": "long_put_wing", "epic": "EP.long_put_wing", "direction": "BUY", "deal_id": "D0", "fill": 100.0, "adopted": false}
+{"ts": "2026-07-19T16:49:44.688850+00:00", "action": "leg_opened", "dry_run": true, "role": "long_call_wing", "epic": "EP.long_call_wing", "direction": "BUY", "deal_id": "D1", "fill": 100.0, "adopted": false}
+{"ts": "2026-07-19T16:49:44.689313+00:00", "action": "leg_opened", "dry_run": true, "role": "short_put", "epic": "EP.short_put", "direction": "SELL", "deal_id": "D2", "fill": 100.0, "adopted": false}
+{"ts": "2026-07-19T16:49:44.689641+00:00", "action": "leg_open_retry", "dry_run": true, "role": "short_call", "epic": "EP.short_call", "attempt": 1, "reason": "INSUFFICIENT_FUNDS"}
+{"ts": "2026-07-19T16:49:44.689966+00:00", "action": "leg_open_retry", "dry_run": true, "role": "short_call", "epic": "EP.short_call", "attempt": 2, "reason": "INSUFFICIENT_FUNDS"}
+{"ts": "2026-07-19T16:49:44.690308+00:00", "action": "leg_open_retry", "dry_run": true, "role": "short_call", "epic": "EP.short_call", "attempt": 3, "reason": "INSUFFICIENT_FUNDS"}
+{"ts": "2026-07-19T16:49:44.690576+00:00", "action": "leg_open_retry", "dry_run": true, "role": "short_call", "epic": "EP.short_call", "attempt": 4, "reason": "INSUFFICIENT_FUNDS"}
+{"ts": "2026-07-19T16:49:44.690875+00:00", "action": "leg_open_persistent_fail", "dry_run": true, "role": "short_call", "epic": "EP.short_call", "reason": "INSUFFICIENT_FUNDS", "retries": 3}
+{"ts": "2026-07-19T16:49:44.691087+00:00", "action": "INCOMPLETE_HELD_defined_risk", "dry_run": true, "failed": "short_call", "open_legs": ["long_put_wing", "long_call_wing", "short_put"], "note": "posizione a rischio definito; operatore: completa o decidi"}
+{"ts": "2026-07-19T16:49:44.691735+00:00", "action": "spread_open_start", "dry_run": true, "desc": "Spread[condor] 31-AUG-26 spot=7565 vix=15.0 credit~20.0 maxloss~200.0 | long_put_wing[BUY PUT 7000 x1.0] long_call_wing[BUY CALL 8140 x1.0] short_put[SELL PUT 7290 x1.0] short_call[SELL CALL 7850 x1.0]", "live": false, "policy": "hold"}
+{"ts": "2026-07-19T16:49:44.691978+00:00", "action": "preflight", "dry_run": true, "ok": true, "problems": [], "expiry": "31-AUG-26"}
+{"ts": "2026-07-19T16:49:44.692230+00:00", "action": "leg_opened", "dry_run": true, "role": "long_put_wing", "epic": "EP.long_put_wing", "direction": "BUY", "deal_id": "D0", "fill": 100.0, "adopted": false}
+{"ts": "2026-07-19T16:49:44.692412+00:00", "action": "leg_opened", "dry_run": true, "role": "long_call_wing", "epic": "EP.long_call_wing", "direction": "BUY", "deal_id": "D1", "fill": 100.0, "adopted": false}
+{"ts": "2026-07-19T16:49:44.692572+00:00", "action": "leg_opened", "dry_run": true, "role": "short_put", "epic": "EP.short_put", "direction": "SELL", "deal_id": "D2", "fill": 100.0, "adopted": false}
+{"ts": "2026-07-19T16:49:44.692735+00:00", "action": "leg_open_adopted_ambiguous", "dry_run": true, "role": "short_call", "epic": "EP.short_call", "deal_id": "D3"}
+{"ts": "2026-07-19T16:49:44.692890+00:00", "action": "leg_opened", "dry_run": true, "role": "short_call", "epic": "EP.short_call", "direction": "SELL", "deal_id": "D3", "fill": 100.0, "adopted": true}
+{"ts": "2026-07-19T16:49:44.693050+00:00", "action": "spread_OPEN_OK", "dry_run": true, "expiry": "31-AUG-26", "legs": 4, "deals": ["D0", "D1", "D2", "D3"]}
+{"ts": "2026-07-19T16:49:44.693505+00:00", "action": "spread_open_start", "dry_run": true, "desc": "Spread[condor] 31-AUG-26 spot=7565 vix=15.0 credit~20.0 maxloss~200.0 | long_put_wing[BUY PUT 7000 x1.0] long_call_wing[BUY CALL 8140 x1.0] short_put[SELL PUT 7290 x1.0] short_call[SELL CALL 7850 x1.0]", "live": false, "policy": "unwind"}
+{"ts": "2026-07-19T16:49:44.693737+00:00", "action": "preflight", "dry_run": true, "ok": true, "problems": [], "expiry": "31-AUG-26"}
+{"ts": "2026-07-19T16:49:44.693913+00:00", "action": "leg_opened", "dry_run": true, "role": "long_put_wing", "epic": "EP.long_put_wing", "direction": "BUY", "deal_id": "D0", "fill": 100.0, "adopted": false}
+{"ts": "2026-07-19T16:49:44.694073+00:00", "action": "leg_opened", "dry_run": true, "role": "long_call_wing", "epic": "EP.long_call_wing", "direction": "BUY", "deal_id": "D1", "fill": 100.0, "adopted": false}
+{"ts": "2026-07-19T16:49:44.694243+00:00", "action": "leg_opened", "dry_run": true, "role": "short_put", "epic": "EP.short_put", "direction": "SELL", "deal_id": "D2", "fill": 100.0, "adopted": false}
+{"ts": "2026-07-19T16:49:44.694460+00:00", "action": "leg_open_retry", "dry_run": true, "role": "short_call", "epic": "EP.short_call", "attempt": 1, "reason": "INSUFFICIENT_FUNDS"}
+{"ts": "2026-07-19T16:49:44.694621+00:00", "action": "leg_open_retry", "dry_run": true, "role": "short_call", "epic": "EP.short_call", "attempt": 2, "reason": "INSUFFICIENT_FUNDS"}
+{"ts": "2026-07-19T16:49:44.694768+00:00", "action": "leg_open_retry", "dry_run": true, "role": "short_call", "epic": "EP.short_call", "attempt": 3, "reason": "INSUFFICIENT_FUNDS"}
+{"ts": "2026-07-19T16:49:44.694915+00:00", "action": "leg_open_retry", "dry_run": true, "role": "short_call", "epic": "EP.short_call", "attempt": 4, "reason": "INSUFFICIENT_FUNDS"}
+{"ts": "2026-07-19T16:49:44.695059+00:00", "action": "leg_open_persistent_fail", "dry_run": true, "role": "short_call", "epic": "EP.short_call", "reason": "INSUFFICIENT_FUNDS", "retries": 3}
+{"ts": "2026-07-19T16:49:44.695214+00:00", "action": "UNWIND_start", "dry_run": true, "trigger": "policy_unwind:short_call", "to_close": 3}
+{"ts": "2026-07-19T16:49:44.695366+00:00", "action": "leg_unwound", "dry_run": true, "role": "short_put", "deal_id": "D2"}
+{"ts": "2026-07-19T16:49:44.695519+00:00", "action": "leg_unwound", "dry_run": true, "role": "long_call_wing", "deal_id": "D1"}
+{"ts": "2026-07-19T16:49:44.695670+00:00", "action": "leg_unwound", "dry_run": true, "role": "long_put_wing", "deal_id": "D0"}
+{"ts": "2026-07-19T16:49:44.695815+00:00", "action": "UNWIND_complete_FLAT", "dry_run": true, "trigger": "policy_unwind:short_call"}
+{"ts": "2026-07-19T16:49:44.696270+00:00", "action": "spread_open_start", "dry_run": true, "desc": "Spread[condor] 31-AUG-26 spot=7565 vix=15.0 credit~20.0 maxloss~200.0 | long_put_wing[BUY PUT 7000 x1.0] long_call_wing[BUY CALL 8140 x1.0] short_put[SELL PUT 7290 x1.0] short_call[SELL CALL 7850 x1.0]", "live": false, "policy": "hold"}
+{"ts": "2026-07-19T16:49:44.696544+00:00", "action": "preflight", "dry_run": true, "ok": false, "problems": [["long_call_wing", "status=EDITS_ONLY"]], "expiry": "31-AUG-26"}
+{"ts": "2026-07-19T16:49:44.696733+00:00", "action": "spread_aborted_preflight", "dry_run": true, "problems": [["long_call_wing", "status=EDITS_ONLY"]]}
+{"ts": "2026-07-19T16:49:45.017558+00:00", "action": "reconcile_mismatch", "dry_run": false, "spread_id": 1, "missing": ["short_call"], "orphans": [], "expired": false}
+{"ts": "2026-07-19T17:12:17.936561+00:00", "action": "spread_open_start", "dry_run": true, "desc": "Spread[condor] 31-AUG-26 spot=7565 vix=15.0 credit~20.0 maxloss~200.0 | long_put_wing[BUY PUT 7000 x1.0] long_call_wing[BUY CALL 8140 x1.0] short_put[SELL PUT 7290 x1.0] short_call[SELL CALL 7850 x1.0]", "live": false, "policy": "hold"}
+{"ts": "2026-07-19T17:12:17.938684+00:00", "action": "preflight", "dry_run": true, "ok": true, "problems": [], "expiry": "31-AUG-26"}
+{"ts": "2026-07-19T17:12:17.938963+00:00", "action": "leg_opened", "dry_run": true, "role": "long_put_wing", "epic": "EP.long_put_wing", "direction": "BUY", "deal_id": "D0", "fill": 100.0, "adopted": false}
+{"ts": "2026-07-19T17:12:17.939157+00:00", "action": "leg_opened", "dry_run": true, "role": "long_call_wing", "epic": "EP.long_call_wing", "direction": "BUY", "deal_id": "D1", "fill": 100.0, "adopted": false}
+{"ts": "2026-07-19T17:12:17.939325+00:00", "action": "leg_opened", "dry_run": true, "role": "short_put", "epic": "EP.short_put", "direction": "SELL", "deal_id": "D2", "fill": 100.0, "adopted": false}
+{"ts": "2026-07-19T17:12:17.939485+00:00", "action": "leg_opened", "dry_run": true, "role": "short_call", "epic": "EP.short_call", "direction": "SELL", "deal_id": "D3", "fill": 100.0, "adopted": false}
+{"ts": "2026-07-19T17:12:17.939647+00:00", "action": "spread_OPEN_OK", "dry_run": true, "expiry": "31-AUG-26", "legs": 4, "deals": ["D0", "D1", "D2", "D3"]}
+{"ts": "2026-07-19T17:12:17.940174+00:00", "action": "spread_open_start", "dry_run": true, "desc": "Spread[condor] 31-AUG-26 spot=7565 vix=15.0 credit~20.0 maxloss~200.0 | long_put_wing[BUY PUT 7000 x1.0] long_call_wing[BUY CALL 8140 x1.0] short_put[SELL PUT 7290 x1.0] short_call[SELL CALL 7850 x1.0]", "live": false, "policy": "hold"}
+{"ts": "2026-07-19T17:12:17.940489+00:00", "action": "preflight", "dry_run": true, "ok": true, "problems": [], "expiry": "31-AUG-26"}
+{"ts": "2026-07-19T17:12:17.940672+00:00", "action": "leg_opened", "dry_run": true, "role": "long_put_wing", "epic": "EP.long_put_wing", "direction": "BUY", "deal_id": "D0", "fill": 100.0, "adopted": false}
+{"ts": "2026-07-19T17:12:17.940827+00:00", "action": "leg_opened", "dry_run": true, "role": "long_call_wing", "epic": "EP.long_call_wing", "direction": "BUY", "deal_id": "D1", "fill": 100.0, "adopted": false}
+{"ts": "2026-07-19T17:12:17.940976+00:00", "action": "leg_opened", "dry_run": true, "role": "short_put", "epic": "EP.short_put", "direction": "SELL", "deal_id": "D2", "fill": 100.0, "adopted": false}
+{"ts": "2026-07-19T17:12:17.941134+00:00", "action": "leg_open_retry", "dry_run": true, "role": "short_call", "epic": "EP.short_call", "attempt": 1, "reason": "REQUOTE"}
+{"ts": "2026-07-19T17:12:17.941300+00:00", "action": "leg_open_retry", "dry_run": true, "role": "short_call", "epic": "EP.short_call", "attempt": 2, "reason": "REQUOTE"}
+{"ts": "2026-07-19T17:12:17.941451+00:00", "action": "leg_open_retry_ok", "dry_run": true, "role": "short_call", "attempt": 3}
+{"ts": "2026-07-19T17:12:17.941591+00:00", "action": "leg_opened", "dry_run": true, "role": "short_call", "epic": "EP.short_call", "direction": "SELL", "deal_id": "D3", "fill": 100.0, "adopted": false}
+{"ts": "2026-07-19T17:12:17.941742+00:00", "action": "spread_OPEN_OK", "dry_run": true, "expiry": "31-AUG-26", "legs": 4, "deals": ["D0", "D1", "D2", "D3"]}
+{"ts": "2026-07-19T17:12:17.942217+00:00", "action": "spread_open_start", "dry_run": true, "desc": "Spread[condor] 31-AUG-26 spot=7565 vix=15.0 credit~20.0 maxloss~200.0 | long_put_wing[BUY PUT 7000 x1.0] long_call_wing[BUY CALL 8140 x1.0] short_put[SELL PUT 7290 x1.0] short_call[SELL CALL 7850 x1.0]", "live": false, "policy": "hold"}
+{"ts": "2026-07-19T17:12:17.942718+00:00", "action": "preflight", "dry_run": true, "ok": true, "problems": [], "expiry": "31-AUG-26"}
+{"ts": "2026-07-19T17:12:17.943042+00:00", "action": "leg_opened", "dry_run": true, "role": "long_put_wing", "epic": "EP.long_put_wing", "direction": "BUY", "deal_id": "D0", "fill": 100.0, "adopted": false}
+{"ts": "2026-07-19T17:12:17.943232+00:00", "action": "leg_opened", "dry_run": true, "role": "long_call_wing", "epic": "EP.long_call_wing", "direction": "BUY", "deal_id": "D1", "fill": 100.0, "adopted": false}
+{"ts": "2026-07-19T17:12:17.943390+00:00", "action": "leg_opened", "dry_run": true, "role": "short_put", "epic": "EP.short_put", "direction": "SELL", "deal_id": "D2", "fill": 100.0, "adopted": false}
+{"ts": "2026-07-19T17:12:17.943545+00:00", "action": "leg_open_retry", "dry_run": true, "role": "short_call", "epic": "EP.short_call", "attempt": 1, "reason": "INSUFFICIENT_FUNDS"}
+{"ts": "2026-07-19T17:12:17.943700+00:00", "action": "leg_open_retry", "dry_run": true, "role": "short_call", "epic": "EP.short_call", "attempt": 2, "reason": "INSUFFICIENT_FUNDS"}
+{"ts": "2026-07-19T17:12:17.943917+00:00", "action": "leg_open_retry", "dry_run": true, "role": "short_call", "epic": "EP.short_call", "attempt": 3, "reason": "INSUFFICIENT_FUNDS"}
+{"ts": "2026-07-19T17:12:17.944122+00:00", "action": "leg_open_retry", "dry_run": true, "role": "short_call", "epic": "EP.short_call", "attempt": 4, "reason": "INSUFFICIENT_FUNDS"}
+{"ts": "2026-07-19T17:12:17.944275+00:00", "action": "leg_open_persistent_fail", "dry_run": true, "role": "short_call", "epic": "EP.short_call", "reason": "INSUFFICIENT_FUNDS", "retries": 3}
+{"ts": "2026-07-19T17:12:17.944470+00:00", "action": "INCOMPLETE_HELD_defined_risk", "dry_run": true, "failed": "short_call", "open_legs": ["long_put_wing", "long_call_wing", "short_put"], "note": "posizione a rischio definito; operatore: completa o decidi"}
+{"ts": "2026-07-19T17:12:17.945231+00:00", "action": "spread_open_start", "dry_run": true, "desc": "Spread[condor] 31-AUG-26 spot=7565 vix=15.0 credit~20.0 maxloss~200.0 | long_put_wing[BUY PUT 7000 x1.0] long_call_wing[BUY CALL 8140 x1.0] short_put[SELL PUT 7290 x1.0] short_call[SELL CALL 7850 x1.0]", "live": false, "policy": "hold"}
+{"ts": "2026-07-19T17:12:17.945539+00:00", "action": "preflight", "dry_run": true, "ok": true, "problems": [], "expiry": "31-AUG-26"}
+{"ts": "2026-07-19T17:12:17.945744+00:00", "action": "leg_opened", "dry_run": true, "role": "long_put_wing", "epic": "EP.long_put_wing", "direction": "BUY", "deal_id": "D0", "fill": 100.0, "adopted": false}
+{"ts": "2026-07-19T17:12:17.945937+00:00", "action": "leg_opened", "dry_run": true, "role": "long_call_wing", "epic": "EP.long_call_wing", "direction": "BUY", "deal_id": "D1", "fill": 100.0, "adopted": false}
+{"ts": "2026-07-19T17:12:17.946102+00:00", "action": "leg_opened", "dry_run": true, "role": "short_put", "epic": "EP.short_put", "direction": "SELL", "deal_id": "D2", "fill": 100.0, "adopted": false}
+{"ts": "2026-07-19T17:12:17.946272+00:00", "action": "leg_open_adopted_ambiguous", "dry_run": true, "role": "short_call", "epic": "EP.short_call", "deal_id": "D3"}
+{"ts": "2026-07-19T17:12:17.946429+00:00", "action": "leg_opened", "dry_run": true, "role": "short_call", "epic": "EP.short_call", "direction": "SELL", "deal_id": "D3", "fill": 100.0, "adopted": true}
+{"ts": "2026-07-19T17:12:17.946593+00:00", "action": "spread_OPEN_OK", "dry_run": true, "expiry": "31-AUG-26", "legs": 4, "deals": ["D0", "D1", "D2", "D3"]}
+{"ts": "2026-07-19T17:12:17.947075+00:00", "action": "spread_open_start", "dry_run": true, "desc": "Spread[condor] 31-AUG-26 spot=7565 vix=15.0 credit~20.0 maxloss~200.0 | long_put_wing[BUY PUT 7000 x1.0] long_call_wing[BUY CALL 8140 x1.0] short_put[SELL PUT 7290 x1.0] short_call[SELL CALL 7850 x1.0]", "live": false, "policy": "unwind"}
+{"ts": "2026-07-19T17:12:17.947355+00:00", "action": "preflight", "dry_run": true, "ok": true, "problems": [], "expiry": "31-AUG-26"}
+{"ts": "2026-07-19T17:12:17.947543+00:00", "action": "leg_opened", "dry_run": true, "role": "long_put_wing", "epic": "EP.long_put_wing", "direction": "BUY", "deal_id": "D0", "fill": 100.0, "adopted": false}
+{"ts": "2026-07-19T17:12:17.947712+00:00", "action": "leg_opened", "dry_run": true, "role": "long_call_wing", "epic": "EP.long_call_wing", "direction": "BUY", "deal_id": "D1", "fill": 100.0, "adopted": false}
+{"ts": "2026-07-19T17:12:17.947877+00:00", "action": "leg_opened", "dry_run": true, "role": "short_put", "epic": "EP.short_put", "direction": "SELL", "deal_id": "D2", "fill": 100.0, "adopted": false}
+{"ts": "2026-07-19T17:12:17.948038+00:00", "action": "leg_open_retry", "dry_run": true, "role": "short_call", "epic": "EP.short_call", "attempt": 1, "reason": "INSUFFICIENT_FUNDS"}
+{"ts": "2026-07-19T17:12:17.948203+00:00", "action": "leg_open_retry", "dry_run": true, "role": "short_call", "epic": "EP.short_call", "attempt": 2, "reason": "INSUFFICIENT_FUNDS"}
+{"ts": "2026-07-19T17:12:17.948361+00:00", "action": "leg_open_retry", "dry_run": true, "role": "short_call", "epic": "EP.short_call", "attempt": 3, "reason": "INSUFFICIENT_FUNDS"}
+{"ts": "2026-07-19T17:12:17.948517+00:00", "action": "leg_open_retry", "dry_run": true, "role": "short_call", "epic": "EP.short_call", "attempt": 4, "reason": "INSUFFICIENT_FUNDS"}
+{"ts": "2026-07-19T17:12:17.948847+00:00", "action": "leg_open_persistent_fail", "dry_run": true, "role": "short_call", "epic": "EP.short_call", "reason": "INSUFFICIENT_FUNDS", "retries": 3}
+{"ts": "2026-07-19T17:12:17.949275+00:00", "action": "UNWIND_start", "dry_run": true, "trigger": "policy_unwind:short_call", "to_close": 3}
+{"ts": "2026-07-19T17:12:17.949592+00:00", "action": "leg_unwound", "dry_run": true, "role": "short_put", "deal_id": "D2"}
+{"ts": "2026-07-19T17:12:17.949870+00:00", "action": "leg_unwound", "dry_run": true, "role": "long_call_wing", "deal_id": "D1"}
+{"ts": "2026-07-19T17:12:17.950146+00:00", "action": "leg_unwound", "dry_run": true, "role": "long_put_wing", "deal_id": "D0"}
+{"ts": "2026-07-19T17:12:17.950414+00:00", "action": "UNWIND_complete_FLAT", "dry_run": true, "trigger": "policy_unwind:short_call"}
+{"ts": "2026-07-19T17:12:17.951222+00:00", "action": "spread_open_start", "dry_run": true, "desc": "Spread[condor] 31-AUG-26 spot=7565 vix=15.0 credit~20.0 maxloss~200.0 | long_put_wing[BUY PUT 7000 x1.0] long_call_wing[BUY CALL 8140 x1.0] short_put[SELL PUT 7290 x1.0] short_call[SELL CALL 7850 x1.0]", "live": false, "policy": "hold"}
+{"ts": "2026-07-19T17:12:17.951577+00:00", "action": "preflight", "dry_run": true, "ok": false, "problems": [["long_call_wing", "status=EDITS_ONLY"]], "expiry": "31-AUG-26"}
+{"ts": "2026-07-19T17:12:17.951880+00:00", "action": "spread_aborted_preflight", "dry_run": true, "problems": [["long_call_wing", "status=EDITS_ONLY"]]}
+{"ts": "2026-07-19T17:12:18.259514+00:00", "action": "reconcile_mismatch", "dry_run": false, "spread_id": 1, "missing": ["short_call"], "orphans": [], "expired": false}

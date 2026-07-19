@@ -5,6 +5,8 @@ aggiungerne), con esecuzione IG, gestione rischio, e **zero perdita di
 tracciamento delle posizioni**. Riprende la filosofia di cryptoquantix
 (registry, reconcile, kill switch) adattata a IG CFD.
 
+> **Indice docs:** [INDICE.md](INDICE.md) · **Fix 19 lug:** [FIXLOG-2026-07-19.md](FIXLOG-2026-07-19.md)
+
 > **Evoluzione multi-broker:** oggi l’esecuzione è accoppiata a IG. Il piano per
 > astrarre il cuore e accettare **qualsiasi** broker conforme (adapter aperti;
 > IBKR/tastytrade come prime prove) è in
@@ -21,6 +23,8 @@ src/
 │   ├── order_manager.py    piazza ordini, conferma fill, retry, idempotenza
 │   ├── position_store.py   stato persistente posizioni (SQLite) + reconcile IG
 │   ├── risk_manager.py     sizing CFD, leva, kill switch, cap esposizione
+│   ├── market_hours.py     RTH USA (09:30–16:00 NY) per il bot CFD
+│   ├── health_check.py     ping IG + allarme LOG (no flat automatico) — #9
 │   └── scheduler.py        loop: quando valutare segnali / gestire posizioni
 ├── strategies/
 │   ├── base_strategy.py    INTERFACCIA (già esiste): scan() / manage() / exits
@@ -66,8 +70,8 @@ Questo è ciò che separa un bot che sopravvive da uno che ti svuota il conto.
 - [ ] **Cap esposizione lorda** aggregata di TUTTE le strategie (leva totale ≤ N).
 - [ ] **Sizing per-rischio** coerente con la leva scelta (2-3x), size min IG.
 - [ ] **Max posizioni aperte** contemporanee.
-- [ ] **Protezione API-down**: se IG non risponde per > T secondi mentre hai
-      posizioni con leva → allarme forte (ed eventuale flat difensivo).
+- [x] **Protezione API-down** (issue #9): se IG non risponde per > T secondi →
+      allarme forte in LOG. Flat automatico **escluso** (solo telemetria).
 
 ### C. Operatività
 - [ ] **Orari di mercato**: il dip-buy è intraday RTH — non piazzare a mercato

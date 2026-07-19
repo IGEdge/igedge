@@ -6,9 +6,10 @@ SpreadOrchestrator — adapter a 2 GAMBE per gli edge opzioni:
   EDGE #3 callspread : BUY call ATM + SELL call +1σ
                        segnale: UPTREND (spot > SMA200)
 
-Riusa TUTTA l'infrastruttura del condor (che era 4 gambe): sessione persistente,
-executor longs-first con ritento (la gamba COMPRATA si apre per prima → ogni
-stato parziale è a rischio definito), store SQLite, throttle, audit.
+Riusa l'infrastruttura multi-gamba generica (issue #16, ex naming "condor"):
+sessione persistente, executor longs-first con ritento (la gamba COMPRATA si
+apre per prima → ogni stato parziale è a rischio definito), store SQLite,
+throttle, audit.
 I segnali di mercato (VIX corrente, max 10gg, ratio VIX3M, SMA200) arrivano da
 FUORI (CLI) — qui solo gate + costruzione + economia reale dalle quote.
 
@@ -19,7 +20,7 @@ from dataclasses import dataclass
 from typing import Optional
 
 from .chain_resolver import build_epic, round_strike
-from .condor import Condor, Leg
+from .spread import Leg, OptionSpread
 from .orchestrator import Orchestrator
 
 
@@ -164,9 +165,9 @@ class SpreadOrchestrator(Orchestrator):
         cs_m1 = g_cs.get("m1", c.cs_long_sig)
         cs_m2 = g_cs.get("m2", c.cs_short_sig)
         size_mult = (g_ps if strat == "putspread" else g_cs).get("size_mult", 1.0)
-        # gate posizioni (per strategia: il DB è condiviso col condor)
+        # gate posizioni (per strategia: DB condivide put/call/legacy)
         n_open = len([x for x in self.store.get_open()
-                      if getattr(x, "strategy", "condor") == strat])
+                      if getattr(x, "strategy", None) == strat])
         if n_open >= c.max_positions_per_strat:
             return {"ok": False, "action": "skip",
                     "reason": f"posizioni aperte {n_open} >= max {c.max_positions_per_strat}"}
@@ -242,11 +243,11 @@ class SpreadOrchestrator(Orchestrator):
 
         legs = [Leg(role=r, epic=q["epic"], direction=d, kind=k,
                     strike=q["strike"], size=size) for r, d, k, q in legs_meta]
-        spread = Condor(underlying_epic=self.cfg.underlying_epic, expiry=expiry,
-                        entry_spot=spot, entry_vix=vix_now, legs=legs,
-                        target_credit=reward_pts if strat == "putspread" else -risk_pts,
-                        max_loss=risk_pts)
-        spread.strategy = strat
+        spread = OptionSpread(
+            underlying_epic=self.cfg.underlying_epic, expiry=expiry,
+            entry_spot=spot, entry_vix=vix_now, legs=legs,
+            target_credit=reward_pts if strat == "putspread" else -risk_pts,
+            max_loss=risk_pts, strategy=strat)
         plan = {"ok": True, "strat": strat, "spread": spread, "expiry": expiry,
                 "dte": dte, "code": code, "spot": spot, "spot_src": spot_src,
                 "vix": vix_now, "vix_src": vix_src, "signal": sig["reason"],
@@ -280,7 +281,7 @@ class SpreadOrchestrator(Orchestrator):
             return plan
         spread = plan["spread"]
         self.audit.warn("ARMED_spread_open", strat=strat, desc=spread.describe())
-        res = self.executor.open_condor(spread)     # longs-first: prima la comprata
+        res = self.executor.open_spread(spread)     # longs-first: prima la comprata
         cid = self.store.record(spread)
         plan["opened"] = res.get("ok")
         plan["store_id"] = cid

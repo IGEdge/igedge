@@ -11,7 +11,9 @@ SICUREZZA prima di tutto (docs/ARCHITETTURA-BOT.md):
     BOT_I_UNDERSTAND_LIVE_RISK (per il container).
   - reconcile con IG a OGNI ciclo (position_store) prima di operare;
   - kill switch giornaliero + cap esposizione (risk_manager);
-  - conferma di ogni ordine + idempotenza (order_manager).
+  - conferma di ogni ordine + idempotenza (order_manager);
+  - health-check API (issue #9): ping periodico + allarme LOG se down;
+    MAI flat automatico (solo telemetria).
 
 Uso:
   python bot.py            # loop PLAN-ONLY (nessun ordine, logga il piano)
@@ -23,7 +25,6 @@ import argparse
 import logging
 import os
 import sys
-import time
 
 for _s in (sys.stdout, sys.stderr):    # console Windows cp1252 → UTF-8 (emoji nei log)
     try:
@@ -33,6 +34,7 @@ for _s in (sys.stdout, sys.stderr):    # console Windows cp1252 → UTF-8 (emoji
 
 from dotenv import load_dotenv
 
+from src.core.health_check import HealthCheck
 from src.core.ig_client import IGClient
 from src.core.order_manager import OrderManager
 from src.core.position_store import PositionStore
@@ -269,16 +271,36 @@ def main():
     )
     om = OrderManager(igt, store)
     strategies = load_strategies(igt)
+
+    # issue #9: telemetria API — ping + CRITICAL in log se down oltre soglia.
+    # Nessun flat / nessun blocco ingressi (falsi positivi di rete = danni).
+    def _ig_probe() -> bool:
+        try:
+            accs = igt.get_accounts()
+            return isinstance(accs, list) and len(accs) > 0
+        except Exception:
+            return False
+
+    health = HealthCheck(
+        _ig_probe,
+        interval_sec=float(os.getenv("HEALTH_CHECK_INTERVAL_SEC", 5)),
+        max_down_sec=float(os.getenv("MAX_API_DOWN_SEC", 30)),
+    )
+    health.tick(force=True)
+
     logger.info(f"bot avviato — strategie: {[s.name for s in strategies]} "
-                f"| equity {risk.equity():.2f}")
+                f"| equity {risk.equity():.2f} "
+                f"| health ogni {health.interval_sec:.0f}s "
+                f"(allarme log @{health.max_down_sec:.0f}s, no flat)")
 
     try:
         while True:
             sess.keep_alive()          # issue #10: rinnova SOLO se serve
+            health.tick()
             cycle(igt, store, risk, om, strategies, armed=armed)
             if args.once:
                 break
-            time.sleep(args.interval)
+            health.sleep_while_monitoring(args.interval)
     except KeyboardInterrupt:
         logger.info("stop richiesto")
     finally:

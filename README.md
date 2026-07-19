@@ -66,14 +66,23 @@ IGEdge/
 ```
 
 ## Documentazione
+
+**Indice ordinato (parti da qui):** **[docs/INDICE.md](docs/INDICE.md)**  
+**Fix del 19 luglio 2026:** **[docs/FIXLOG-2026-07-19.md](docs/FIXLOG-2026-07-19.md)**
+
 | Documento | Contenuto |
 |---|---|
-| [docs/EDGE-1-compra-il-dip.md](docs/EDGE-1-compra-il-dip.md) | L'edge #1: regole, validazione, leva, comandi |
-| [docs/STORIA-iron-condor.md](docs/STORIA-iron-condor.md) | Edge #2 (candidato): short-vol VRP con iron condor su opzioni US500 |
+| [docs/INDICE.md](docs/INDICE.md) | Indice di tutta la docs, per titolo/uso |
+| [docs/FIXLOG-2026-07-19.md](docs/FIXLOG-2026-07-19.md) | Diario fix CFD + opzioni (19 lug) |
+| [docs/STATO-PROGETTO.md](docs/STATO-PROGETTO.md) | Cosa gira sul Pi, gate, checklist ripresa |
+| [docs/ARM-PER-STRATEGIA.md](docs/ARM-PER-STRATEGIA.md) | Arm opzioni modulare (allowlist) |
 | [docs/INDICE-EDGE.md](docs/INDICE-EDGE.md) | Registro edge: validati / falsificati / da indagare |
-| [docs/ARCHITETTURA-BOT.md](docs/ARCHITETTURA-BOT.md) | Architettura modulare + checklist sicurezza |
+| [docs/EDGE-1-compra-il-dip.md](docs/EDGE-1-compra-il-dip.md) | EDGE #1 CFD dip-buy |
+| [docs/EDGE-2-vendi-put-lontane.md](docs/EDGE-2-vendi-put-lontane.md) | EDGE #2 put-spread |
+| [docs/EDGE-3-compra-call-mensile.md](docs/EDGE-3-compra-call-mensile.md) | EDGE #3 call-spread |
+| [docs/ARCHITETTURA-BOT.md](docs/ARCHITETTURA-BOT.md) | Architettura + checklist sicurezza |
 | [docs/DEPLOY.md](docs/DEPLOY.md) | Deploy Docker su Raspberry Pi |
-| [docs/DIARIO-CONVERSIONE-IG.md](docs/DIARIO-CONVERSIONE-IG.md) | Log del progetto: setup IG, tutti i risultati |
+| [docs/DIARIO-CONVERSIONE-IG.md](docs/DIARIO-CONVERSIONE-IG.md) | Diario setup IG |
 | [data/research/README.md](data/research/README.md) | Dove sono i dati e come rigenerarli |
 
 ## Stato

@@ -1,1 +1,1 @@
-# IGEdge - Iron Condor Trading Bot for Deribit
+# IGEdge — bot quant IG (CFD + opzioni US500)

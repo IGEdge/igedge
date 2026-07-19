@@ -11,8 +11,10 @@ New York, mercato USA aperto), fa 3 cose e va a dormire:
    nel log vedi se OGGI il sistema avrebbe venduto un put-spread (post-panico)
    o comprato una call (uptrend) e a che prezzi reali.
 
-**⚠️ Non apre MAI posizioni.** È tutto read-only: l'apertura vera richiede il
-comando manuale con `--arm --i-understand-live-risk`.
+**⚠️ Di default non apre posizioni** (`OPTIONS_DAEMON_ARM=false`).
+L’apertura vera è a allowlist (modulare): vedi `docs/ARM-PER-STRATEGIA.md`.
+Esempio solo put: `OPTIONS_ARMED_STRATEGIES=putspread` + gate demone on.
+Comando manuale LIVE: `--live --arm --i-understand-live-risk`.
 
 ---
 

@@ -229,7 +229,8 @@ Adattamento minimo: una variante orchestratore che apre **solo il put-spread**
    conti coi rapporti medi veri. NON andare live prima di questo gate.
 2. ✅ **Adapter put-spread FATTO (14 lug 2026):** `scripts/run_spread.py --strat
    putspread --live` (plan-only di default; `--arm --i-understand-live-risk` per
-   aprire). Modulo `src/options/spread_orchestrator.py`: 2 gambe (ala comprata
+   aprire su LIVE). Arm per-strategia / demone: `docs/ARM-PER-STRATEGIA.md` (#15).
+   Modulo `src/options/spread_orchestrator.py`: 2 gambe (ala comprata
    PRIMA, poi la short → mai nudi), segnale post-panico+TS calcolato in
    automatico (VIX/VIX3M dal CBOE, max 10gg), sizing 1 contratto/€1000, store
    con colonna `strategy`. Verificato plan-only sul reale (salta correttamente

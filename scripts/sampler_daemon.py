@@ -7,8 +7,11 @@ Ogni giorno di borsa (lun-ven) alle SAMPLER_RUN_AT (default 16:30 Europe/Rome,
 
   1. refresh VIX + VIX3M dal CBOE  → data/research/{vix,vix3m}_daily.csv
   2. SAMPLER SKEW (gate edge #2/#3) → data/research/skew_samples.csv
-  3. run_spread plan-only (--strat both) → controlla i segnali dei due edge
-     e logga il piano che APRIREBBE (nessun ordine: serve --arm esplicito)
+  3. run_spread (--strat both --live) → controlla i segnali dei due edge.
+     DEFAULT plan-only. Per aprire: OPTIONS_DAEMON_ARM=true +
+     OPTIONS_DAEMON_I_UNDERSTAND_LIVE_RISK=true + allowlist
+     OPTIONS_ARMED_STRATEGIES=... (es. putspread). Il demone NON hardcoda
+     quale strategia aprire — lo decide la config.
 
 Log: logs/sampler.log. Heartbeat per l'healthcheck: logs/sampler.heartbeat.
 Retry: se il sampler fallisce (rete/festivo) ritenta ogni 30 min, max 3 volte.
@@ -123,8 +126,22 @@ def daily_jobs():
                 heartbeat(); time.sleep(60)
     if not ok:
         log("❌ sampler skew fallito oggi (festivo? rete?) — riproverò domani")
-    run_script(["scripts/run_spread.py", "--strat", "both", "--live"],
-               "run_spread plan-only (controllo segnali edge #2/#3)")
+    # Gate demone: flag env generici. Quali strategie aprono = allowlist in
+    # OPTIONS_ARMED_STRATEGIES (letta da run_spread) — zero hardcode qui.
+    spread_args = ["scripts/run_spread.py", "--strat", "both", "--live"]
+    daemon_arm = os.getenv("OPTIONS_DAEMON_ARM", "false").lower() == "true"
+    daemon_ok = os.getenv("OPTIONS_DAEMON_I_UNDERSTAND_LIVE_RISK",
+                          "false").lower() == "true"
+    if daemon_arm and daemon_ok:
+        spread_args += ["--arm", "--i-understand-live-risk"]
+        allow = os.getenv("OPTIONS_ARMED_STRATEGIES", "").strip() or "(vuota→plan-only)"
+        log(f"gate demone ARMATO — allowlist={allow}")
+    else:
+        if daemon_arm and not daemon_ok:
+            log("⚠️ OPTIONS_DAEMON_ARM=true ma manca "
+                "OPTIONS_DAEMON_I_UNDERSTAND_LIVE_RISK — resto plan-only")
+        log("gate demone plan-only (nessun ordine)")
+    run_script(spread_args, "run_spread (segnali edge #2/#3)")
     log("════════ JOB GIORNALIERO — fine ════════")
 
 

@@ -193,3 +193,8 @@ def resolve_condor_epics(client, expiry: str, spot: float, iv: float, dte: int,
     return {"ok": True, "epics": epics,
             "targets": {r: round(t[1], 1) for r, t in targets.items()},
             "sigma_pts": round(spot * sT, 1)}
+
+
+# Alias generici (issue #16) — preferire questi nel codice nuovo
+resolve_spread_epics = resolve_condor_epics
+resolve_spread_epics_direct = resolve_condor_epics_direct

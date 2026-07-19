@@ -2,6 +2,10 @@
 
 > **Perché questo file:** fotografia di dove siamo, cosa gira da solo, e cosa
 > fare quando riprendiamo.
+>
+> **Indice docs:** [INDICE.md](INDICE.md)  
+> **Fix del 19 lug 2026 (ordinati):** [FIXLOG-2026-07-19.md](FIXLOG-2026-07-19.md)  
+> **Arm opzioni:** [ARM-PER-STRATEGIA.md](ARM-PER-STRATEGIA.md)
 
 ## 📅 LE DUE DATE DEL CAMPIONAMENTO
 - **INIZIO: mercoledì 15 luglio 2026** — primo giorno di raccolta autonoma sul
@@ -66,6 +70,9 @@ fatto alla ripresa (o comunque PRIMA del pilot)** e porta su in un colpo:
   finché il Pi non è aggiornato) + guardie anti-quote-spazzatura
 - Gate margine (#7) nel controllo segnali giornaliero
 - Fix bot CFD: #3 #4 #5 #8 #10 #12 (arm/plan-only, scale-in, RTH, sessione)
+- Health-check telemetria CFD (#9)
+- Arm per-strategia opzioni (#15) — vedi `docs/ARM-PER-STRATEGIA.md`
+  (default demone resta plan-only finché i flag non si accendono)
 
 ```bash
 # dal PC:  scp -r scripts src antonio@raspberrypi:Documents/igedge/
@@ -107,5 +114,6 @@ funzionano col codice vecchio — perde solo le novità sopra.)
   MAI bloccano. Vietato aspettare crolli per mesi.
 - **Nessun edge è provato senza fill reali** (lezione condor). Il backtest non basta.
 - **Broker = IG e basta.** Yahoo solo attraverso il codice dello scanner (IP!).
-- **Niente ordini senza `--arm --i-understand-live-risk`** + ok esplicito.
-- I conti IG sono SEPARATI (CFD vs opzioni) → il sistema dovrà gestirli entrambi.
+- **Niente ordini LIVE senza `--arm` + `--i-understand-live-risk`** + ok esplicito.
+  Su DEMO opzioni basta `--arm` (test). Allowlist per-strategia: `docs/ARM-PER-STRATEGIA.md`.
+- I conti IG sono SEPARATI (CFD vs opzioni) → non mescolare path/`bot.py` e `run_spread`.
